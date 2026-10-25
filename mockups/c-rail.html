@@ -1,0 +1,36 @@
+<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+  .rail { position: absolute; left: 36px; top: 60px; bottom: 60px; width: 108px; border-radius: 54px; display: flex; flex-direction: column; align-items: center; padding: 26px 0; gap: 14px; }
+  .rail .logo { font-size: 20px; font-weight: 700; letter-spacing: .08em; opacity: .9; margin-bottom: 10px; }
+  .rail .n { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; font-size: 34px; }
+  .rail .n.on { background: #fff; color: #111; }
+  .rail .grow { flex: 1; }
+  .main { position: absolute; left: 220px; right: 96px; top: 70px; bottom: 60px; }
+  .hd { display: flex; align-items: flex-start; justify-content: space-between; }
+  .hd h1 { font-size: 72px; font-weight: 500; } .hd p { font-size: 26px; opacity: .85; margin-top: 4px; }
+  .hd .clock { font-size: 96px; text-align: right; line-height: 1; }
+  .sec { font-size: 26px; font-weight: 500; margin: 48px 0 16px; opacity: .95; }
+  .cw { display: flex; gap: 20px; }
+  .cw .card { width: 360px; height: 202px; border-radius: 18px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+  .cw .card span { position: absolute; left: 14px; bottom: 16px; font-size: 21px; font-weight: 500; z-index: 2; }
+  .cw .card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.75), transparent 60%); }
+  .cw .card i { position: absolute; left: 0; bottom: 0; height: 5px; background: #fff; z-index: 3; }
+  .apps { display: flex; gap: 20px; }
+  .apps .app { width: 220px; height: 124px; font-size: 23px; }
+  .apps .app.f { outline: 5px solid #fff; transform: scale(1.1); margin: 0 8px; }
+  .hint { position: absolute; bottom: 0; left: 0; right: 0; font-size: 22px; opacity: .65; display: flex; justify-content: space-between; }
+</style>
+<div class="wall"></div><div class="hills"></div><div class="scrim"></div>
+<div class="rail glass"><div class="logo">LUNA</div>
+  <div class="n on"><i data-i="home"></i></div><div class="n"><i data-i="apps"></i></div><div class="n"><i data-i="input"></i></div><div class="n"><i data-i="game"></i></div><div class="n"><i data-i="recent"></i></div><div class="n"><i data-i="image"></i></div>
+  <div class="grow"></div><div class="n"><i data-i="settings"></i></div><div class="n"><i data-i="power"></i></div></div>
+<div class="main sh">
+  <div class="hd"><div><h1>Good Evening</h1><p>☁️ Partly cloudy · 18°C · H 21° / L 12°</p></div><div><div class="clock">9:41</div><p style="text-align:right">Sun, Oct 25</p></div></div>
+  <div class="sec">Continue Watching</div>
+  <div class="cw"><div class="card c3"><span>The Bear · S3 E4</span><i style="width:62%"></i></div><div class="card c4"><span>Dune: Part Two</span><i style="width:30%"></i></div><div class="card c2"><span>Severance · S2 E7</span><i style="width:85%"></i></div><div class="card c8"><span>Arcane · S2 E1</span><i style="width:12%"></i></div></div>
+  <div class="sec">Your apps</div>
+  <div class="apps"><div class="app c1">Play Store</div><div class="app c2 f">SmartTube</div><div class="app c3">Nuvio</div><div class="app c4">Moonlight</div><div class="app c5">Netflix</div><div class="app c6">Disney+</div></div>
+  <div class="hint"><span>◀ ▶ browse  ·  Hold OK for options</span><span>Rail: Home · Apps · Inputs · Game · Recent · Wallpapers</span></div>
+</div>
+<div class="tag" style="top:8px;bottom:auto">C · SIDE RAIL (icon rail on the left, content stays clean and wide)</div>
+<script src="icons.js"></script>

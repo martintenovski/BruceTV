@@ -1,0 +1,34 @@
+<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+  .hero { position: absolute; inset: 0; background:
+    radial-gradient(ellipse 50% 60% at 78% 40%, rgba(255,200,140,.5), transparent 70%),
+    linear-gradient(90deg, rgba(5,8,20,.92) 0%, rgba(5,8,20,.55) 45%, rgba(5,8,20,0) 75%),
+    linear-gradient(0deg, rgba(5,8,20,.95) 0%, rgba(5,8,20,0) 45%); }
+  .top { position: absolute; top: 44px; left: 96px; right: 96px; display: flex; align-items: center; gap: 44px; font-size: 28px; }
+  .top .t { opacity: .62; } .top .t.on { opacity: 1; font-weight: 600; border-bottom: 4px solid #fff; padding-bottom: 6px; }
+  .top .r { margin-left: auto; display: flex; gap: 30px; align-items: center; font-size: 28px; }
+  .feat { position: absolute; left: 96px; top: 230px; width: 880px; }
+  .feat .k { font-size: 22px; letter-spacing: .18em; opacity: .75; } .feat h1 { font-size: 104px; line-height: 1; font-weight: 600; margin: 14px 0; }
+  .feat p { font-size: 26px; opacity: .85; line-height: 1.4; }
+  .feat .b { display: flex; gap: 16px; margin-top: 34px; }
+  .btn { height: 72px; padding: 0 44px; border-radius: 36px; display: flex; gap: 12px; align-items: center; font-size: 27px; font-weight: 600; }
+  .btn.p { background: #fff; color: #111; }
+  .bar { position: absolute; left: 96px; right: 96px; bottom: 230px; height: 5px; width: 540px; border-radius: 3px; background: rgba(255,255,255,.25); }
+  .bar i { display: block; height: 100%; width: 62%; background: #fff; border-radius: 3px; }
+  .row { position: absolute; left: 96px; bottom: 96px; display: flex; gap: 20px; }
+  .row .app { width: 168px; height: 168px; border-radius: 26px; font-size: 21px; }
+  .row .app.f { outline: 5px solid #fff; transform: scale(1.1); margin: 0 8px; }
+  .qa { position: absolute; right: 96px; bottom: 96px; display: flex; flex-direction: column; gap: 14px; }
+  .qa .q { width: 330px; height: 76px; border-radius: 20px; display: flex; gap: 16px; align-items: center; padding: 0 26px; font-size: 25px; }
+  .lab { position: absolute; left: 96px; bottom: 286px; font-size: 24px; opacity: .85; }
+</style>
+<div class="wall"></div><div class="hills" style="left:30%"></div><div class="hero"></div>
+<div class="top sh"><span class="t on">Home</span><span class="t">Apps</span><span class="t">Inputs</span><span class="t">Game</span><span class="t">Recent</span>
+  <div class="r"><span>☁️ 18°</span><span style="font-weight:300;font-size:36px">9:41</span><i data-i="settings"></i></div></div>
+<div class="feat sh"><div class="k">CONTINUE WATCHING · NUVIO</div><h1>The Bear</h1><p>Season 3 · Episode 4 — 22 min left</p>
+  <div class="b"><span class="btn p"><i data-i="play"></i>Resume</span><span class="btn glass">Details</span></div></div>
+<div class="lab sh">Your apps</div>
+<div class="row"><div class="app c1">Play Store</div><div class="app c2 f">SmartTube</div><div class="app c3">Nuvio</div><div class="app c4">Moonlight</div><div class="app c5">Netflix</div><div class="app c6">Disney+</div><div class="app c7">Prime</div></div>
+<div class="qa"><div class="q glass"><i data-i="game"></i>Game Mode</div><div class="q glass"><i data-i="input"></i>Inputs</div><div class="q glass"><i data-i="recent"></i>Recent apps</div></div>
+<div class="tag" style="top:8px;bottom:auto">D · SPOTLIGHT (Google-TV style hero, text tabs, quick actions bottom-right)</div>
+<script src="icons.js"></script>

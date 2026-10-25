@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bento: one grid of big tiles, no nav bar. Left: Game Mode (art of the last played game), Continue Watching / animated
+     greeting, your apps. Right: weather, then pairs of tiles that line up under Inputs and All apps. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/wall"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:id="@+id/dim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#46000000"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/scrim" />
+
+    <LinearLayout
+        android:id="@+id/home"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:orientation="vertical"
+        android:paddingStart="43dp"
+        android:paddingTop="22dp"
+        android:paddingEnd="43dp"
+        android:paddingBottom="10dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp">
+
+            <TextView
+                style="@style/Shadowed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:fontFamily="sans-serif-medium"
+                android:text="Luna TV"
+                android:textSize="22sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/statusPill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:background="@drawable/chip_bg"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="16dp">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:duplicateParentState="true"
+                        android:src="@drawable/ic_wifi"
+                        android:tint="#000000" />
+
+                    <TextView
+                        android:id="@+id/netLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:duplicateParentState="true"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="#000000"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <TextClock
+                    style="@style/Shadowed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/glass_bar"
+                    android:fontFamily="sans-serif-light"
+                    android:format12Hour="h:mm"
+                    android:format24Hour="H:mm"
+                    android:gravity="center"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:textSize="17sp" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="6dp"
+            android:layout_weight="1"
+            android:clipChildren="false"
+            android:orientation="horizontal">
+
+            <!-- left: 4 of 6 columns -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="4"
+                android:clipChildren="true"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="2"
+                    android:clipChildren="false"
+                    android:orientation="horizontal">
+
+                    <FrameLayout
+                        android:id="@+id/actGame"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bento_game"
+                        android:clipToOutline="true"
+                        android:focusable="true"
+                        android:foreground="@drawable/bento_focus">
+
+                        <ImageView
+                            android:id="@+id/gameArt"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:importantForAccessibility="no"
+                            android:scaleType="centerCrop" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:layout_gravity="bottom"
+                            android:background="@drawable/scrim_bottom" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="bottom"
+                            android:orientation="vertical"
+                            android:padding="14dp">
+
+                            <ImageView android:layout_width="36dp" android:layout_height="36dp" android:src="@drawable/ic_game" />
+                            <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+                            <TextView style="@style/BentoTitle" android:fontFamily="sans-serif" android:text="Game Mode" android:textSize="26sp" />
+                            <TextView android:id="@+id/gameSub" style="@style/BentoSub" android:text="Stream your PC" android:textSize="12sp" />
+                        </LinearLayout>
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/contTile"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_margin="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/tile_bg"
+                        android:clipToOutline="true"
+                        android:focusable="true"
+                        android:foreground="@drawable/bento_focus">
+
+                        <ImageView
+                            android:id="@+id/contArt"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:importantForAccessibility="no"
+                            android:scaleType="centerCrop" />
+
+                        <com.bearacle.tv.WeatherView
+                            android:id="@+id/wxAnim"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:layout_gravity="bottom"
+                            android:background="@drawable/scrim_bottom" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="bottom"
+                            android:orientation="vertical"
+                            android:padding="14dp">
+
+                            <ImageView android:layout_width="28dp" android:layout_height="28dp" android:src="@drawable/ic_play" />
+                            <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+                            <TextView android:id="@+id/contTitle" style="@style/BentoTitle" android:textSize="22sp" />
+                            <TextView android:id="@+id/contSub" style="@style/BentoSub" android:textSize="12sp" />
+                        </LinearLayout>
+                    </FrameLayout>
+                </LinearLayout>
+
+                <HorizontalScrollView
+                    android:id="@+id/favScroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipChildren="true"
+                    android:clipToPadding="false"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/favRow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp" />
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <!-- right: 2 of 6 columns, three rows of two equal tiles (Game + Continue span the first two rows) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:clipChildren="false"
+                android:orientation="vertical">
+
+<LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipChildren="false"
+                    android:orientation="horizontal">
+
+                    <LinearLayout android:id="@+id/actInputs" style="@style/BentoTile" android:padding="12dp">
+                        <ImageView android:layout_width="22dp" android:layout_height="22dp" android:tint="#000000" android:src="@drawable/ic_input" />
+                        <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+                        <TextView style="@style/BentoBtnTitle" android:text="Inputs" />
+                        <TextView style="@style/BentoBtnSub" android:text="HDMI sources" />
+                    </LinearLayout>
+
+                    <LinearLayout android:id="@+id/actApps" style="@style/BentoTile" android:padding="12dp">
+                        <ImageView android:layout_width="22dp" android:layout_height="22dp" android:tint="#000000" android:src="@drawable/ic_apps" />
+                        <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+                        <TextView style="@style/BentoBtnTitle" android:text="All apps" />
+                        <TextView android:id="@+id/appsSub" style="@style/BentoBtnSub" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipChildren="false"
+                    android:orientation="horizontal">
+
+                    <LinearLayout android:id="@+id/actRecent" style="@style/BentoTile" android:padding="12dp">
+                        <ImageView android:layout_width="22dp" android:layout_height="22dp" android:tint="#000000" android:src="@drawable/ic_recent" />
+                        <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+                        <TextView style="@style/BentoBtnTitle" android:text="Recent" />
+                        <TextView android:id="@+id/recentSub" style="@style/BentoBtnSub" />
+                    </LinearLayout>
+
+                    <LinearLayout android:id="@+id/actWall" style="@style/BentoTile" android:padding="12dp">
+                        <ImageView android:layout_width="22dp" android:layout_height="22dp" android:tint="#000000" android:src="@drawable/ic_image" />
+                        <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+                        <TextView style="@style/BentoBtnTitle" android:text="Wallpaper" />
+                        <TextView style="@style/BentoBtnSub" android:text="Change background" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipChildren="false"
+                    android:orientation="horizontal">
+
+                    <LinearLayout android:id="@+id/actSettings" style="@style/BentoTile" android:padding="12dp">
+                        <ImageView android:layout_width="22dp" android:layout_height="22dp" android:tint="#000000" android:src="@drawable/ic_settings" />
+                        <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+                        <TextView style="@style/BentoBtnTitle" android:text="Settings" />
+                        <TextView style="@style/BentoBtnSub" android:text="All settings" />
+                    </LinearLayout>
+
+                    <LinearLayout android:id="@+id/actSleep" style="@style/BentoTile" android:padding="12dp">
+                        <ImageView android:layout_width="22dp" android:layout_height="22dp" android:tint="#000000" android:src="@drawable/ic_power" />
+                        <Space android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+                        <TextView style="@style/BentoBtnTitle" android:text="Sleep" />
+                        <TextView style="@style/BentoBtnSub" android:text="Turn the TV off" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/homeHint"
+            style="@style/Shadowed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginEnd="5dp"
+            android:alpha="0.6"
+            android:text="Hold OK on an app for options"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <include layout="@layout/ov_nav" />
+    <include layout="@layout/ov_top" />
+
+    <Space
+        android:id="@+id/header"
+        android:layout_width="0dp"
+        android:layout_height="0dp" />
+</FrameLayout>

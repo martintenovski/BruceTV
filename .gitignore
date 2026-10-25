@@ -1,0 +1,14 @@
+.gradle/
+build/
+app/build/
+local.properties
+*.apk
+.idea/
+pc/game-mode/art-cache.json
+pc/game-mode/launches.json
+pc/game-mode/game-folders.json
+pc/game-mode/hidden.json
+__pycache__/
+pc/game-mode/profile.json
+pc/game-mode/custom-games.json
+local.properties

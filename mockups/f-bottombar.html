@@ -1,0 +1,28 @@
+<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+  .top { position: absolute; top: 48px; left: 96px; right: 96px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .top .l { font-size: 26px; opacity: .9; line-height: 1.5; } .top .l b { font-size: 34px; font-weight: 500; display: block; }
+  .top .clock { font-size: 64px; }
+  .mid { position: absolute; left: 0; right: 0; top: 270px; text-align: center; }
+  .mid h1 { font-size: 112px; font-weight: 500; letter-spacing: -.01em; }
+  .strip { position: absolute; left: 0; right: 0; top: 520px; display: flex; gap: 22px; padding: 0 96px; }
+  .strip .app { width: 250px; height: 140px; font-size: 24px; flex: none; }
+  .strip .app.f { outline: 5px solid #fff; transform: scale(1.12); margin: 0 12px; }
+  .nav { position: absolute; left: 96px; right: 96px; bottom: 54px; height: 120px; border-radius: 34px; display: flex; align-items: stretch; padding: 12px; gap: 10px; }
+  .nav .n { flex: 1; border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 21px; }
+  .nav .n i { font-size: 40px; }
+  .nav .n.on { background: #fff; color: #111; }
+  .nav .n.g { background: linear-gradient(135deg, #2b6bff, #8a3dff); }
+  .nav .sep { width: 2px; background: rgba(255,255,255,.2); margin: 14px 4px; }
+</style>
+<div class="wall"></div><div class="hills"></div><div class="scrim"></div>
+<div class="top sh"><div class="l"><b>Luna TV</b>☁️ 18°C · Partly cloudy</div><div style="text-align:right"><div class="clock">9:41</div><div style="font-size:24px;opacity:.85">Sun, Oct 25</div></div></div>
+<div class="mid sh"><h1>Good Evening</h1></div>
+<div class="strip"><div class="app c1">Play Store</div><div class="app c2 f">SmartTube</div><div class="app c3">Nuvio</div><div class="app c4">Moonlight</div><div class="app c5">Netflix</div><div class="app c6">Disney+</div><div class="app c7">Prime Video</div></div>
+<div class="nav glass">
+  <div class="n on"><i data-i="home"></i>Home</div><div class="n"><i data-i="apps"></i>Apps</div><div class="n"><i data-i="recent"></i>Recent</div><div class="n"><i data-i="input"></i>Inputs</div>
+  <div class="sep"></div><div class="n g"><i data-i="game"></i>Game Mode</div><div class="sep"></div>
+  <div class="n"><i data-i="image"></i>Wallpaper</div><div class="n"><i data-i="settings"></i>Settings</div>
+</div>
+<div class="tag" style="top:8px;bottom:auto">F · BOTTOM NAV (labelled icon bar at the bottom, top stays empty and calm)</div>
+<script src="icons.js"></script>

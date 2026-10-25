@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Game Mode</title>
+<style>
+  :root { --blue: #0070d1; --glow: #4aa3ff; --text: #fff; --dim: rgba(255,255,255,.62); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; color: var(--text);
+    font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; cursor: none; user-select: none; }
+  .screen { position: fixed; inset: 0; opacity: 0; pointer-events: none; transition: opacity .6s ease; }
+  .screen.on { opacity: 1; pointer-events: auto; }
+  .avatar, .x, .legend b, .grid .k { line-height: 1; text-align: center; font-family: "Segoe UI Variable Display", "Segoe UI", "Segoe UI Emoji", sans-serif; }
+
+  /* boot */
+  #boot { background: radial-gradient(ellipse at 50% 75%, #0b2a7a 0%, #040b24 45%, #000 80%); }
+  #boot canvas { position: absolute; inset: 0; }
+  #boot .symbols { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 6vh; }
+  #boot .symbols svg { width: 9vh; height: 9vh; opacity: 0; transform: scale(.4); filter: drop-shadow(0 0 1.6vh currentColor);
+    transition: opacity .5s ease, transform .7s cubic-bezier(.2, 1.6, .4, 1); }
+  #boot.go .symbols svg { opacity: 1; transform: scale(1); }
+  #boot .symbols svg:nth-child(2) { transition-delay: .17s; }
+  #boot .symbols svg:nth-child(3) { transition-delay: .34s; }
+  #boot .symbols svg:nth-child(4) { transition-delay: .51s; }
+  #boot .tag { position: absolute; top: 58%; width: 100%; text-align: center; letter-spacing: .6em; font-size: 2.2vh;
+    font-weight: 300; opacity: 0; transition: opacity 1s ease 1.2s; }
+  #boot.go .tag { opacity: .85; }
+
+  /* user select */
+  #user { background: radial-gradient(ellipse at 50% 40%, #12307a 0%, #050d2b 55%, #000 100%); display: flex;
+    flex-direction: column; align-items: center; justify-content: center; gap: 3vh; }
+  #user h1 { font-weight: 300; font-size: 4.4vh; letter-spacing: .02em; }
+  .avatar { width: 20vh; height: 20vh; border-radius: 50%; display: grid; place-items: center; font-size: 9vh; font-weight: 600;
+    background: linear-gradient(140deg, #2b7bff, #8a3dff); box-shadow: 0 0 0 .6vh #fff, 0 0 6vh rgba(74,163,255,.8);
+    animation: breathe 2.4s ease-in-out infinite; }
+  @keyframes breathe { 50% { box-shadow: 0 0 0 .6vh #fff, 0 0 10vh rgba(74,163,255,1); } }
+  #user .name { font-size: 3vh; }
+  .hint { font-size: 2vh; color: var(--dim); }
+  .x { display: inline-grid; place-items: center; width: 2.8vh; height: 2.8vh; border-radius: 50%; background: #fff;
+    color: #000; font-size: 1.8vh; font-weight: 700; margin: 0 .4em; vertical-align: -.5vh; }
+
+  /* home */
+  #home .bg { position: absolute; inset: 0; background-size: cover; background-position: center 20%;
+    transition: opacity .7s ease; transform: scale(1.03); }
+  #home .shade { position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.45) 45%, rgba(0,0,0,0) 75%),
+                linear-gradient(0deg, rgba(0,0,0,.9) 0%, rgba(0,0,0,0) 45%),
+                linear-gradient(180deg, rgba(0,0,0,.7) 0%, rgba(0,0,0,0) 30%); }
+  .top { position: absolute; top: 4vh; left: 6vw; right: 4vw; display: flex; align-items: center; gap: 4vh; font-size: 2.6vh; }
+  .top .tab { font-weight: 600; }
+  .top .tab.off { color: var(--dim); font-weight: 400; }
+  .top .right { margin-left: auto; display: flex; align-items: center; gap: 3vh; }
+  .top .mini { width: 4.6vh; height: 4.6vh; font-size: 2.2vh; animation: none; box-shadow: 0 0 0 .25vh #fff; }
+  .top .clock { font-size: 2.8vh; font-weight: 300; min-width: 9vh; text-align: right; }
+  .row { position: absolute; top: 12vh; left: 6vw; display: flex; align-items: center; gap: 1.6vh; transition: transform .25s ease; }
+  .tile { position: relative; width: 11vh; height: 11vh; border-radius: 1.6vh; overflow: hidden; flex: none; background: #1b2233;
+    transition: width .22s ease, height .22s ease, box-shadow .22s ease; box-shadow: 0 1vh 3vh rgba(0,0,0,.5); }
+  .tile img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+  .tile .fallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 1vh; text-align: center; font-size: 1.6vh; }
+  .tile img + .fallback { display: none; }
+  .tile.sel { width: 17vh; height: 17vh; box-shadow: 0 0 0 .45vh #fff, 0 0 4vh rgba(255,255,255,.35); }
+  .tile .label { display: none; }
+  .selname { position: absolute; top: 30.5vh; font-size: 2.2vh; font-weight: 500; white-space: nowrap;
+    text-shadow: 0 .3vh 1vh #000; transition: left .25s ease; }
+  .info { position: absolute; left: 6vw; bottom: 13vh; width: 46vw; }
+  .info .logo { max-width: 32vw; max-height: 20vh; filter: drop-shadow(0 .6vh 2vh rgba(0,0,0,.7)); display: block; }
+  .info .title { font-size: 6vh; font-weight: 600; line-height: 1.05; text-shadow: 0 .4vh 2vh #000; }
+  .info .meta { margin-top: 2.2vh; font-size: 2vh; color: var(--dim); }
+  .info .buttons { margin-top: 3vh; display: flex; gap: 1.6vh; }
+  .btn { height: 6.4vh; padding: 0 5vh; border-radius: 3.2vh; display: inline-flex; align-items: center; font-size: 2.3vh; font-weight: 600;
+    background: rgba(255,255,255,.16); backdrop-filter: blur(10px); }
+  .btn.primary { background: #fff; color: #000; box-shadow: 0 0 3vh rgba(255,255,255,.35); }
+  .legend { position: absolute; right: 4vw; bottom: 5vh; display: flex; gap: 3.5vh; font-size: 1.9vh; color: var(--dim); align-items: center; }
+  .legend b { font-weight: 600; color: #fff; display: inline-grid; place-items: center; width: 2.8vh; height: 2.8vh; border-radius: 50%;
+    border: .2vh solid currentColor; margin-right: .7vh; font-size: 1.5vh; }
+  .legend b svg { width: 60%; height: 60%; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  /* game page: opens on Play, a second Play starts the game */
+  #home.detail .row, #home.detail .selname, #home.detail .info { opacity: 0; pointer-events: none; }
+  #detail { position: absolute; left: 6vw; bottom: 13vh; width: 62vw; opacity: 0; transform: translateY(2vh); pointer-events: none;
+    transition: opacity .35s ease, transform .35s ease; }
+  #home.detail #detail { opacity: 1; transform: none; }
+  #detail .logo { max-width: 34vw; max-height: 22vh; filter: drop-shadow(0 .6vh 2vh rgba(0,0,0,.7)); display: block; }
+  #detail .title { font-size: 7vh; font-weight: 600; line-height: 1.05; text-shadow: 0 .4vh 2vh #000; }
+  #detail .src { margin-top: 2vh; font-size: 2vh; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
+  #detail .stats { margin-top: 3.4vh; display: flex; gap: 1.6vh; }
+  #detail .stat { min-width: 19vh; padding: 1.8vh 2.4vh; border-radius: 1.8vh; background: rgba(255,255,255,.12); backdrop-filter: blur(10px); }
+  #detail .stat b { display: block; font-size: 3.4vh; font-weight: 600; }
+  #detail .stat span { display: block; margin-top: .6vh; font-size: 1.7vh; color: var(--dim); }
+  #detail .buttons { margin-top: 3.6vh; display: flex; gap: 1.6vh; }
+  .empty { position: absolute; left: 6vw; top: 40vh; font-size: 3vh; color: var(--dim); }
+
+  /* overlays */
+  .overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.6);
+    backdrop-filter: blur(16px); z-index: 10; }
+  .overlay.on { display: flex; }
+  /* exit: fade to black so the TV's closing screen takes over without a flash of the desktop */
+  #bye { position: fixed; inset: 0; background: #000; opacity: 0; transition: opacity .5s ease; pointer-events: none; z-index: 99; }
+  #bye.on { opacity: 1; }
+  .menu { width: 52vh; background: rgba(28,32,44,.92); border-radius: 2.4vh; padding: 2vh; box-shadow: 0 3vh 8vh rgba(0,0,0,.6); }
+  .menu h2 { font-size: 2.2vh; font-weight: 500; color: var(--dim); padding: 1vh 1.6vh .6vh; }
+  .menu .status { font-size: 1.8vh; color: var(--dim); padding: 0 1.6vh 1.6vh; min-height: 2.6vh; }
+  .menu .item { padding: 1.8vh 2.2vh; border-radius: 1.4vh; font-size: 2.3vh; display: flex; justify-content: space-between; }
+  .menu .item.sel { background: #fff; color: #000; }
+  .menu .item .tick { opacity: .7; }
+  .menu .sep { height: 1px; background: rgba(255,255,255,.12); margin: 1vh 1.6vh; }
+  #launch { flex-direction: column; gap: 4vh; background: rgba(0,0,0,.75); }
+  #launch .spin { width: 8vh; height: 8vh; border-radius: 50%; border: .6vh solid rgba(255,255,255,.15); border-top-color: #fff;
+    animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #launch .what { font-size: 3vh; }
+
+  /* controllers + button map */
+  #pads .panel { width: 150vh; max-height: 90vh; background: rgba(28,32,44,.94); border-radius: 2.4vh; padding: 3vh 3.4vh 2.4vh;
+    box-shadow: 0 3vh 8vh rgba(0,0,0,.6); }
+  #pads .tabs { display: flex; gap: 1.2vh; margin-bottom: 2.4vh; }
+  #pads .tabs span { padding: 1vh 2.6vh; border-radius: 3vh; font-size: 2.2vh; color: var(--dim); background: rgba(255,255,255,.08); }
+  #pads .tabs span.on { background: #fff; color: #000; font-weight: 600; }
+  #pads .pad { display: flex; align-items: center; gap: 2.4vh; padding: 2vh 2.6vh; border-radius: 1.8vh; margin-bottom: 1.2vh;
+    background: rgba(255,255,255,.07); }
+  #pads .pad.sel { background: #fff; color: #000; }
+  #pads .pad svg { width: 7vh; height: 5vh; flex: none; }
+  #pads .pad .nm { font-size: 2.6vh; font-weight: 600; }
+  #pads .pad .sub { font-size: 1.8vh; opacity: .65; margin-top: .4vh; }
+  #pads .pad .prof { margin-left: auto; font-size: 2.1vh; padding: .8vh 2vh; border-radius: 3vh; background: rgba(255,255,255,.14); }
+  #pads .pad.sel .prof { background: #0070d1; color: #fff; }
+  #pads .none { padding: 5vh 2vh; text-align: center; font-size: 2.4vh; color: var(--dim); line-height: 1.6; }
+  #pads .foot { margin-top: 2vh; font-size: 1.8vh; color: var(--dim); text-align: center; }
+  #pads .map { display: flex; gap: 3vh; align-items: center; }
+  #pads .map svg.pic { width: 62vh; flex: none; }
+  #pads table { border-collapse: collapse; font-size: 1.75vh; width: 100%; }
+  #pads th { text-align: left; font-weight: 500; color: var(--dim); padding: 0 1vh .7vh; }
+  #pads td { padding: .45vh 1vh; border-top: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
+  #pads td i { display: inline-grid; place-items: center; width: 2.6vh; height: 2.6vh; border-radius: 50%; background: #0070d1;
+    font: 600 1.5vh "Segoe UI", sans-serif; margin-right: 1vh; font-style: normal; }
+  #pads td em { color: var(--glow); font-style: normal; }
+
+  /* profile editor */
+  #edit { flex-direction: column; gap: 2.4vh; }
+  #edit .preview { display: flex; flex-direction: column; align-items: center; gap: 1.2vh; }
+  #edit .preview .avatar { width: 11vh; height: 11vh; font-size: 5.5vh; animation: none; }
+  #edit .preview .nm { position: relative; text-align: center; font-size: 4vh; font-weight: 300; min-width: 40vh; border-bottom: .3vh solid rgba(255,255,255,.4); padding-bottom: .6vh; }
+  #edit .preview .nm::after { content: "|"; position: absolute; opacity: .5; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .grid { display: flex; flex-direction: column; gap: 1vh; align-items: center; }
+  .grid .r { display: flex; gap: 1vh; }
+  .grid .k { min-width: 6.4vh; height: 6.4vh; padding: 0 1.6vh; border-radius: 1.2vh; display: grid; place-items: center;
+    background: rgba(255,255,255,.1); font-size: 2.4vh; }
+  .grid .k.av { width: 7.6vh; height: 7.6vh; border-radius: 50%; font-size: 3.6vh; padding: 0; }
+  .grid .k.on { box-shadow: 0 0 0 .3vh rgba(255,255,255,.55); }
+  .grid .k.av.st { width: 10.4vh; height: 10.4vh; }
+  .grid .k.sel { background: #fff; color: #000; box-shadow: 0 0 3vh rgba(255,255,255,.4); }
+  .grid .k.av.sel { box-shadow: 0 0 0 .5vh #fff, 0 0 3vh rgba(255,255,255,.5); }
+  .grid .gap { height: 1.4vh; }
+
+  /* settings lists: long ones scroll, two-line rows, wide variant for paths */
+  .menu.wide { width: 88vh; }
+  .menu .item { gap: 2vh; align-items: center; }
+  .menu .item .t { min-width: 0; flex: 1; }
+  .menu .item .t b { display: block; font-weight: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .menu .item .t small { display: block; font-size: 1.6vh; opacity: .6; margin-top: .4vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .menu .item.head { color: var(--dim); font-size: 1.7vh; padding: 1.6vh 2.2vh .4vh; }
+  .menu .status { white-space: pre-line; }
+  .menu .more { height: 2.4vh; text-align: center; font-size: 1.5vh; color: var(--dim); line-height: 2.4vh; }
+  #edit .title { font-size: 2.6vh; font-weight: 500; }
+</style>
+</head>
+<body>
+<div id="bye"></div>
+
+<div id="boot" class="screen on">
+  <canvas id="particles"></canvas>
+  <div class="symbols">
+    <svg viewBox="0 0 100 100" style="color:#3ddbb6"><path d="M50 12 L90 82 L10 82 Z" fill="none" stroke="currentColor" stroke-width="9" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 100 100" style="color:#ff5468"><circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="9"/></svg>
+    <svg viewBox="0 0 100 100" style="color:#7aa7ff"><path d="M16 16 L84 84 M84 16 L16 84" stroke="currentColor" stroke-width="9" stroke-linecap="round"/></svg>
+    <svg viewBox="0 0 100 100" style="color:#f28ad0"><rect x="16" y="16" width="68" height="68" fill="none" stroke="currentColor" stroke-width="9" stroke-linejoin="round"/></svg>
+  </div>
+  <div class="tag">GAME MODE</div>
+</div>
+
+<div id="user" class="screen">
+  <h1>Welcome back</h1>
+  <div class="avatar" id="avatar">?</div>
+  <div class="name" id="uname"></div>
+  <div class="hint">Press <span class="x">✕</span> to continue</div>
+</div>
+
+<div id="home" class="screen">
+  <div class="bg" id="bgA"></div>
+  <div class="bg" id="bgB" style="opacity:0"></div>
+  <div class="shade"></div>
+  <div class="top">
+    <span class="tab">Games</span>
+    <div class="right">
+      <div class="avatar mini" id="avatar2">?</div>
+      <span class="clock" id="clock"></span>
+    </div>
+  </div>
+  <div class="row" id="row"></div>
+  <div class="selname" id="selname"></div>
+  <div class="info" id="info"></div>
+  <div id="detail"></div>
+  <div class="legend"><span><b><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></b>Play</span><span id="legTri"><b><svg viewBox="0 0 24 24"><path d="M12 4.5l8 14H4z"/></svg></b>Steam Big Picture</span><span><b><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1"/></svg></b>Controllers</span><span><b><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/></svg></b><i id="legBack" style="font-style:normal">Menu</i></span></div>
+</div>
+
+<div class="overlay" id="pads"><div class="panel">
+  <div class="tabs"><span id="tabC">Controllers</span><span id="tabM">Button map</span></div>
+  <div id="padBody"></div>
+  <div class="foot" id="padFoot"></div>
+</div></div>
+
+<div class="overlay" id="menu"><div class="menu" id="menuBox"></div></div>
+<div class="overlay" id="launch"><div class="spin"></div><div class="what" id="launchWhat"></div></div>
+<div class="overlay" id="edit">
+  <div class="title" id="editTitle"></div>
+  <div class="preview"><div class="avatar" id="editAvatar"></div><div class="nm" id="editName"></div></div>
+  <div class="grid" id="keys"></div>
+  <div class="hint">✕ select  ·  ○ cancel</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let state = "boot", games = [], gamesLoaded = false, sel = 0, bgFront = $("bgA"), bgBack = $("bgB");
+let me = {name: "", avatar: 0};
+
+// avatars: DiceBear (https://github.com/dicebear/dicebear). The profile picks a style, then one of its seeds; seed 0 is the
+// profile name. The initial letter sits underneath until the picture loads (or if the PC is offline).
+const STYLES = ["pixel-art", "bottts", "adventurer", "avataaars", "big-smile", "fun-emoji", "lorelei", "micah", "miniavs",
+  "open-peeps", "personas", "thumbs", "croodles", "notionists"];
+const AVATARS = [null, "Bear", "Fox", "Wolf", "Panda", "Lion", "Robot", "Rocket", "Racer", "Ghost", "Dragon", "Comet"];
+const avatarImgs = {};   // url -> loaded <img>, so repainting the picker doesn't flicker
+function paintAvatar(el, idx, name, style = me.style || STYLES[0]) {
+  el.style.background = "linear-gradient(140deg, #2b7bff, #8a3dff)";
+  el.style.position = "relative";
+  el.textContent = (name || "?")[0].toUpperCase();
+  const url = `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(AVATARS[idx] || name || "?")}`;
+  const put = img => { el.textContent = ""; el.appendChild(img.cloneNode()); };
+  if (avatarImgs[url]) return put(avatarImgs[url]);
+  const img = new Image();
+  img.style.cssText = "position:absolute;inset:0;width:100%;height:100%;border-radius:50%";
+  img.onload = () => { avatarImgs[url] = img; if (el.isConnected) put(img); };
+  img.src = url;
+}
+function applyProfile() {
+  paintAvatar($("avatar"), me.avatar, me.name); paintAvatar($("avatar2"), me.avatar, me.name);
+  $("uname").textContent = me.name;
+}
+
+// ---------- sound (synthesized, no assets) ----------
+let ac;
+function audio() { return ac || (ac = new (window.AudioContext || window.webkitAudioContext)()); }
+function tone(freq, dur, vol = 0.05, type = "sine", when = 0) {
+  try {
+    const a = audio(), t = a.currentTime + when, o = a.createOscillator(), g = a.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+  } catch (e) {}
+}
+const sfx = {
+  move: () => tone(1480, 0.06, 0.03),
+  ok: () => { tone(880, 0.12, 0.05); tone(1320, 0.18, 0.04, "sine", 0.06); },
+  back: () => tone(520, 0.12, 0.04),
+  boot: () => [261.6, 329.6, 392, 523.3].forEach((f, i) => tone(f, 2.6, 0.035, "sine", i * 0.12)),
+};
+
+// ---------- boot ----------
+const cv = $("particles"), cx = cv.getContext("2d");
+const dots = Array.from({length: 90}, () => ({x: Math.random(), y: Math.random(), r: .6 + Math.random() * 1.8, v: .02 + Math.random() * .06, p: Math.random() * 9}));
+function particles(t) {
+  if (state !== "boot" && state !== "user") return;
+  cv.width = innerWidth; cv.height = innerHeight;
+  for (const d of dots) {
+    const y = ((d.y - t / 1000 * d.v) % 1 + 1) % 1;
+    cx.globalAlpha = .25 + .6 * Math.abs(Math.sin(t / 450 + d.p));
+    cx.fillStyle = "#cfe3ff"; cx.beginPath(); cx.arc(d.x * cv.width, y * cv.height, d.r * devicePixelRatio, 0, 7); cx.fill();
+  }
+  requestAnimationFrame(particles);
+}
+requestAnimationFrame(particles);
+setTimeout(() => { $("boot").classList.add("go"); sfx.boot(); }, 300);
+setTimeout(() => { if (state === "boot") show("user"); }, 3400);
+
+function show(name) {
+  for (const s of ["boot", "user", "home"]) $(s).classList.toggle("on", s === name);
+  state = name;
+  if (name === "home") render();
+}
+
+// ---------- data ----------
+fetch("/api/profile").then(r => r.json()).then(p => { me = p; applyProfile(); }).catch(() => {});
+fetch("/api/games").then(r => r.json()).then(d => {
+  games = d.games; gamesLoaded = true;
+  games.forEach(g => { if (g.art) new Image().src = `/art/${g.art}/library_hero.jpg`; }); // warm the cache
+  if (state === "home") render();
+}).catch(() => {});
+
+function ago(ts) {
+  if (!ts) return "Not played yet";
+  const d = Math.floor((Date.now() / 1000 - ts) / 86400);
+  return d < 1 ? "Played today" : d === 1 ? "Played yesterday" : `Played ${d} days ago`;
+}
+const gb = b => b ? ` · ${(b / 1e9).toFixed(b > 1e10 ? 0 : 1)} GB` : "";
+
+function render() {
+  const row = $("row");
+  if (!games.length) {
+    $("info").innerHTML = gamesLoaded ? '<div class="empty">No games found yet.<br>Press OK to open Settings and scan for games.</div>'
+      : '<div class="empty">Loading your games…</div>';
+    return;
+  }
+  if (!row.children.length) {
+    for (const g of games) {
+      const t = document.createElement("div");
+      t.className = "tile";
+      t.innerHTML = (g.art ? `<img src="/art/${g.art}/library_600x900.jpg" onerror="this.remove()">` : "") + '<div class="fallback"></div>';
+      t.querySelector(".fallback").textContent = g.name;
+      row.appendChild(t);
+    }
+  }
+  [...row.children].forEach((t, i) => t.classList.toggle("sel", i === sel));
+  // final geometry (tiles 11vh + 1.6vh gap, selected 17vh); keep the selection near the left like a console row
+  const vh = innerHeight / 100, x = sel * 12.6 * vh, shift = Math.max(0, x - 2 * 12.6 * vh);
+  row.style.transform = `translateX(${-shift}px)`;
+  $("selname").style.left = `calc(6vw + ${x - shift}px)`;
+  const g = games[sel];
+  $("selname").textContent = g.name;
+
+  bgBack.style.backgroundImage = g.art ? `url(/art/${g.art}/library_hero.jpg)` : "radial-gradient(ellipse at 70% 30%, #12307a, #050d2b 60%, #000)";
+  bgBack.style.opacity = 1; bgFront.style.opacity = 0;
+  [bgFront, bgBack] = [bgBack, bgFront];
+
+  const info = $("info");
+  info.innerHTML = `${g.art ? `<img class="logo" src="/art/${g.art}/logo.png">` : ""}<div class="title"${g.art ? ' style="display:none"' : ""}></div>
+    <div class="meta">${ago(g.last)}${gb(g.size)}</div>
+    <div class="buttons"><span class="btn primary">Play</span></div>`;
+  info.querySelector(".title").textContent = g.name;
+  const logo = info.querySelector(".logo");
+  if (logo) logo.onerror = () => { logo.remove(); info.querySelector(".title").style.display = ""; };
+}
+
+// ---------- game page ----------
+const SRCNAME = {steam: "Steam", epic: "Epic Games", xbox: "Microsoft Store", gog: "GOG", ubisoft: "Ubisoft Connect", custom: "Added by hand"};
+function lastAgo(ts) {
+  if (!ts) return "Never";
+  const d = Math.floor((Date.now() / 1000 - ts) / 86400);
+  return d < 1 ? "Today" : d === 1 ? "Yesterday" : `${d} days ago`;
+}
+const playTime = m => !m ? "—" : m < 60 ? `${m} min` : `${(m / 60).toFixed(m < 6000 ? 1 : 0).replace(/\.0$/, "")} h`;
+function openDetail() {
+  const g = games[sel]; if (!g) return;
+  sfx.ok(); state = "detail";
+  const stat = (v, l) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`;
+  $("detail").innerHTML = `${g.art ? `<img class="logo" src="/art/${g.art}/logo.png">` : ""}<div class="title"${g.art ? ' style="display:none"' : ""}></div>
+    <div class="src">${SRCNAME[g.src] || ""}</div>
+    <div class="stats">${stat(lastAgo(g.last), "Last played")}${stat(playTime(g.played), "Time played")}${stat(g.size ? gb(g.size).slice(3) : "—", "Size on disk")}</div>
+    <div class="buttons"><span class="btn primary">Play</span></div>`;
+  $("detail").querySelector(".title").textContent = g.name;
+  const logo = $("detail").querySelector(".logo");
+  if (logo) logo.onerror = () => { logo.remove(); $("detail").querySelector(".title").style.display = ""; };
+  $("home").classList.add("detail"); $("legTri").style.display = "none"; $("legBack").textContent = "Back";
+}
+function closeDetail() { $("home").classList.remove("detail"); $("legTri").style.display = ""; $("legBack").textContent = "Menu"; state = "home"; }
+
+// ---------- actions ----------
+const post = (p, body) => fetch(p, {method: "POST", body: body && JSON.stringify(body)}).catch(() => {});
+function launch() {
+  const g = games[sel]; if (!g) return;
+  sfx.ok(); post(`/api/launch/${encodeURIComponent(g.id)}`);
+  $("launchWhat").textContent = `Starting ${g.name}…`;
+  $("launch").classList.add("on");
+  setTimeout(() => $("launch").classList.remove("on"), 9000);
+}
+function bigPicture() { sfx.ok(); post("/api/bigpicture"); }
+
+// ---------- menus (main menu and the DS4Windows panel share one list UI) ----------
+// A menu is {title, status, items: [{label, sub, tick, head, sep, act}], back, wide, arrows}. Rows with `head` are captions
+// (skipped by the cursor); `arrows` lets Left go back and Right open, for folder browsing. menuGen tells late answers apart.
+let menu = null, menuSel = 0, menuGen = 0;
+const WINDOW = 9;
+function openMenu(m, at = 0) {
+  menu = m; menuGen++; state = "menu"; $("menu").classList.add("on");
+  menuSel = Math.min(at, Math.max(0, m.items.length - 1));
+  if (m.items[menuSel] && m.items[menuSel].head) stepMenu(1);
+  paintMenu();
+}
+function closeMenu() { $("menu").classList.remove("on"); state = "home"; menu = null; }
+function stepMenu(d) {
+  const n = menu.items.length;
+  for (let i = 0; i < n; i++) { menuSel = (menuSel + d + n) % n; if (!menu.items[menuSel].head) return; }
+}
+function paintMenu() {
+  const box = $("menuBox");
+  box.className = "menu" + (menu.wide ? " wide" : "");
+  box.innerHTML = `<h2></h2><div class="status"></div>`;
+  box.querySelector("h2").textContent = menu.title;
+  box.querySelector(".status").textContent = menu.status || "";
+  const n = menu.items.length, from = Math.max(0, Math.min(menuSel - 4, n - WINDOW)), to = Math.min(n, from + WINDOW);
+  box.insertAdjacentHTML("beforeend", `<div class="more">${from > 0 ? "▲" : ""}</div>`);
+  for (let i = from; i < to; i++) {
+    const it = menu.items[i];
+    if (it.sep) box.insertAdjacentHTML("beforeend", '<div class="sep"></div>');
+    const el = document.createElement("div");
+    el.className = "item" + (it.head ? " head" : "") + (i === menuSel ? " sel" : "");
+    el.innerHTML = `<span class="t"><b></b><small></small></span><span class="tick">${it.tick ? "✓" : ""}</span>`;
+    el.querySelector("b").textContent = it.label;
+    const sm = el.querySelector("small");
+    if (it.sub) sm.textContent = it.sub; else sm.remove();
+    box.appendChild(el);
+  }
+  box.insertAdjacentHTML("beforeend", `<div class="more">${to < n ? "▼" : ""}</div>`);
+}
+const mainMenu = () => ({title: "Game Mode", items: [
+  {label: "Resume", act: closeMenu},
+  {label: "Settings", act: () => openSettings()},
+  {label: "Steam Big Picture", act: () => { closeMenu(); bigPicture(); }},
+  {label: "Exit Game Mode", act: () => { closeMenu(); $("bye").classList.add("on"); sfx.boot(); post("/api/exit"); }, sep: true},
+]});
+
+// ---------- settings: finding games, adding one by hand, hiding, scan folders ----------
+const SRC = {steam: "Steam", epic: "Epic Games", xbox: "Microsoft Store", gog: "GOG", ubisoft: "Ubisoft Connect", custom: "Added by hand"};
+const baseName = p => p.replace(/[\\/]+$/, "").split(/[\\/]/).pop();
+const joinPath = (a, b) => a.replace(/[\\/]+$/, "") + "\\" + b;
+const stem = n => n.replace(/\.[^.]*$/, "");
+function openSettings(status) {
+  openMenu({title: "Settings", status: status || `${games.length} games in your menu`, back: () => openMenu(mainMenu()), items: [
+    {label: "Scan for games", sub: "Look through your launchers and game folders", act: startScan},
+    {label: "Add a game", sub: "Pick its folder or program if it wasn't found", act: () => openAddGame()},
+    {label: "Manage games", sub: "Hide a game or remove one you added", act: () => openManage()},
+    {label: "Game folders", sub: "Folders the scan looks through", act: openFolders},
+    {label: "Controllers & button map", act: openPads, sep: true},
+    {label: "DS4Windows settings", act: openDs4},
+    {label: "Edit profile", act: openEdit},
+  ]});
+}
+function reloadGames() {
+  return fetch("/api/games").then(r => r.json()).then(d => {
+    games = d.games; $("row").innerHTML = ""; sel = Math.min(sel, Math.max(0, games.length - 1));
+    games.forEach(g => { if (g.art) new Image().src = `/art/${g.art}/library_hero.jpg`; });
+  }).catch(() => {});
+}
+// open a menu that says "Loading…" and swap in the real one when the data arrives (unless the user moved on)
+function loading(title, url, build, back) {
+  openMenu({title, status: "Loading…", items: [], back});
+  const g = menuGen;
+  return fetch(url).then(r => r.json()).then(d => { if (g === menuGen) build(d); })
+    .catch(() => { if (g === menuGen) { menu.status = "That didn't work"; paintMenu(); } });
+}
+
+let jobTimer = 0;
+// run a server job (scan, folder search) behind a Cancel menu, then hand its result to done()
+function runJob(url, body, title, status, back, done) {
+  const stop = () => { clearInterval(jobTimer); post("/api/job/cancel"); back(); };
+  openMenu({title, status, items: [{label: "Cancel", act: stop}], back: stop});
+  const g = menuGen;
+  fetch(url, {method: "POST", body: JSON.stringify(body || {})}).then(() => {
+    clearInterval(jobTimer);
+    jobTimer = setInterval(() => fetch("/api/job").then(r => r.json()).then(j => {
+      if (g !== menuGen) return clearInterval(jobTimer);
+      if (j.running) { menu.status = j.text; paintMenu(); }
+      else { clearInterval(jobTimer); done(j.result || {}); }
+    }).catch(() => {}), 600);
+  }).catch(() => { menu.status = "That didn't work"; paintMenu(); });
+}
+
+function startScan() {
+  runJob("/api/job/scan", null, "Scanning for games", "Starting…", openSettings, r => {
+    reloadGames();
+    if (r.error || r.cancelled) return openSettings(r.error ? "The scan failed" : "");
+    const names = Object.entries(r.counts || {}).map(([k, n]) => `${SRC[k] || k} ${n}`).join("  ·  ");
+    const summary = `${r.total} games in your menu${names ? "  ·  " + names : ""}`;
+    if (!r.found.length) {
+      return openMenu({title: "Scan finished", status: summary + "\nNo new games found.", back: openSettings, items: [
+        {label: "Add a game by hand", sub: "Pick its folder or program", act: () => openAddGame()},
+        {label: "Done", act: () => openSettings()}]});
+    }
+    const picked = r.found.map(() => true), count = () => picked.filter(Boolean).length;
+    const items = [{label: "", act: () => addFound(r.found.filter((_, i) => picked[i]))}];
+    const label = () => { items[0].label = count() ? `Add ${count()} ${count() === 1 ? "game" : "games"}` : "Nothing selected"; };
+    r.found.forEach((g, i) => items.push({label: g.name, sub: g.path, tick: true, act: () => {
+      picked[i] = !picked[i]; items[i + 1].tick = picked[i]; label(); paintMenu();
+    }}));
+    label();
+    openMenu({title: `Found ${r.found.length} new ${r.found.length === 1 ? "game" : "games"}`, status: "Press OK on a game to untick it", wide: true, back: openSettings, items});
+  });
+}
+function addFound(list) {
+  if (!list.length) return openSettings();
+  menu.status = "Adding…"; paintMenu();
+  fetch("/api/games/addmany", {method: "POST", body: JSON.stringify({games: list})}).then(r => r.json())
+    .then(d => reloadGames().then(() => { sfx.ok(); openSettings(`Added ${d.added} ${d.added === 1 ? "game" : "games"}`); }))
+    .catch(() => { menu.status = "That didn't work"; paintMenu(); });
+}
+
+function openAddGame(status) {
+  openMenu({title: "Add a game", status: status || "Pick the game's folder, or the program that starts it", back: openSettings, items: [
+    {label: "Browse this PC", sub: "Open your disks and folders", act: () => browse("", "game", () => openAddGame())},
+    {label: "Search by name", sub: "Type part of the game's name", act: () => openSearch("game", () => openAddGame())},
+  ]});
+}
+function browse(path, mode, back, focusName) {
+  loading("Browse", `/api/fs?path=${encodeURIComponent(path)}`, d => {
+    const items = [];
+    if (d.drives) {
+      items.push({label: "🔍  Search by name…", act: () => openSearch(mode, () => browse("", mode, back))});
+      if (d.places.length) items.push({head: true, label: "Shortcuts"});
+      d.places.forEach(p => items.push({label: "📁  " + p.name, sub: p.path, act: () => browse(p.path, mode, back)}));
+      items.push({head: true, label: "Disks"});
+      d.drives.forEach(x => items.push({label: "💽  " + x.name, sub: `${(x.free / 1e9).toFixed(0)} GB free`, act: () => browse(x.path, mode, back)}));
+    } else {
+      items.push({label: mode === "game" ? "✔  Use this folder" : "✔  Add this folder", act: () => useFolder(path, mode, () => browse(path, mode, back))});
+      d.dirs.forEach(n => items.push({label: "📁  " + n, act: () => browse(joinPath(path, n), mode, back)}));
+      if (mode === "game") d.files.forEach(n => items.push({label: "🎮  " + n, act: () => nameGame(joinPath(path, n), stem(n).replace(/[._]+/g, " "), () => browse(path, mode, back))}));
+      if (items.length === 1) items.push({head: true, label: "Nothing in this folder"});
+    }
+    const at = focusName ? items.findIndex(it => it.label.endsWith("  " + focusName)) : 0;
+    openMenu({title: d.drives ? "This PC" : path, wide: true, arrows: true, items,
+      status: mode === "game" ? "Open a folder, then choose “Use this folder” (or pick the .exe)" : "Open the folder to scan, then choose “Add this folder”",
+      back: () => d.drives ? back() : browse(d.parent, mode, back, baseName(path))}, Math.max(0, at));
+  }, back);
+}
+function useFolder(path, mode, back) {
+  if (mode === "folder") {
+    return fetch("/api/folders/add", {method: "POST", body: JSON.stringify({path})}).then(() => { sfx.ok(); openFolders(); });
+  }
+  loading("Looking for the game", `/api/exes?folder=${encodeURIComponent(path)}`, d => {
+    const e = d.exes;
+    if (!e.length) {
+      return openMenu({title: "No game found here", status: "There's no program to start in this folder.\nOpen the folder and pick the .exe yourself.", back,
+        items: [{label: "Back", act: back}]});
+    }
+    if (e.length === 1 || (e[0].match && !e[1].match)) return nameGame(e[0].path, d.name, back);
+    openMenu({title: "Which one starts the game?", status: d.name, wide: true, back,
+      items: e.map(x => ({label: "🎮  " + x.name, sub: x.path, act: () => nameGame(x.path, d.name, back)}))});
+  }, back);
+}
+function nameGame(path, name, back) {
+  openText("Name this game", name, text => {
+    fetch("/api/games/add", {method: "POST", body: JSON.stringify({name: text, path})}).then(r => r.json()).then(d => {
+      if (!d.ok) return openAddGame("That file can't be added");
+      reloadGames().then(() => { sfx.ok(); openAddGame(`Added “${text || name}”`); });
+    }).catch(() => openAddGame("That didn't work"));
+  }, back);
+}
+function openSearch(mode, back) {
+  openText("Search for a folder", "", q => {
+    if (!q) return back();
+    runJob("/api/job/find", {q}, "Searching…", `Looking for “${q}”`, back, r => {
+      const found = r.folders || [];
+      if (!found.length) {
+        return openMenu({title: "Nothing found", status: `No folder matches “${q}”`, back, items: [
+          {label: "Search again", act: () => openSearch(mode, back)}, {label: "Browse instead", act: () => browse("", mode, back)}]});
+      }
+      openMenu({title: `${found.length} ${found.length === 1 ? "folder" : "folders"} for “${q}”`, status: "Pick the game's folder", wide: true, back: () => openSearch(mode, back),
+        items: found.map(p => ({label: "📁  " + p.name, sub: p.path, act: () => useFolder(p.path, mode, () => openSearch(mode, back))}))});
+    });
+  }, back);
+}
+
+function openManage(at = 0) {
+  loading("Manage games", "/api/manage", d => {
+    const items = d.games.map((g, i) => ({label: g.name, tick: !g.hidden && !g.missing,
+      sub: SRC[g.src] + (g.hidden ? " · hidden" : "") + (g.missing ? " · file missing" : ""), act: () => manageOne(g, i)}));
+    openMenu({title: "Manage games", status: "✓ = shown in the Game Mode menu", wide: true, back: () => openSettings(), items}, at);
+  }, () => openSettings());
+}
+function manageOne(g, at) {
+  const change = a => fetch(`/api/games/${a}/${encodeURIComponent(g.id)}`, {method: "POST"}).then(() => reloadGames()).then(() => { sfx.ok(); openManage(at); });
+  const items = [];
+  if (!g.missing) items.push(g.hidden ? {label: "Show in the menu", act: () => change("show")} : {label: "Hide from the menu", act: () => change("hide")});
+  if (g.src === "custom") items.push({label: "Remove from Game Mode", sub: "The game itself stays installed", act: () => change("remove")});
+  items.push({label: "Back", act: () => openManage(at)});
+  openMenu({title: g.name, status: SRC[g.src], items, back: () => openManage(at)});
+}
+function openFolders() {
+  loading("Game folders", "/api/folders", d => {
+    const items = d.folders.map(p => ({label: "📁  " + baseName(p), sub: p, act: () => openMenu({title: p, back: openFolders, items: [
+      {label: "Stop looking in this folder", act: () => fetch("/api/folders/remove", {method: "POST", body: JSON.stringify({path: p})}).then(() => openFolders())},
+      {label: "Back", act: openFolders}]})}));
+    items.push({label: "＋  Add a folder", sub: "A folder with games in it, like D:\\Games", act: () => browse("", "folder", openFolders), sep: items.length > 0});
+    openMenu({title: "Game folders", wide: true, back: () => openSettings(), items,
+      status: "The scan also checks Games folders on every disk, plus these"});
+  }, () => openSettings());
+}
+
+function ds4Menu(s) {
+  if (!s.installed) return {title: "DS4Windows", status: "DS4Windows is not installed", items: [{label: "Back", act: () => openSettings()}]};
+  const items = s.profiles.map(p => ({label: p, tick: s.running && p === s.current, act: () => ds4(`profile/${encodeURIComponent(p)}`, `Loading ${p}…`)}));
+  items.push({label: "Restart DS4Windows", act: () => ds4("restart", "Restarting…"), sep: true});
+  items.push(s.running ? {label: "Turn off DS4Windows", act: () => ds4("stop", "Turning off…")}
+                       : {label: "Turn on DS4Windows", act: () => ds4("start", "Starting…")});
+  return {title: "Controller · DS4Windows", items, back: () => openSettings(),
+    status: s.running ? `Running · profile ${s.current}` : "Not running"};
+}
+function openDs4() {
+  openMenu({title: "Controller · DS4Windows", status: "Checking…", items: [], back: () => openSettings()});
+  fetch("/api/ds4").then(r => r.json()).then(s => { if (state === "menu") { const i = menuSel; openMenu(ds4Menu(s)); menuSel = Math.min(i, menu.items.length - 1); paintMenu(); } });
+}
+function ds4(action, busy) {
+  menu.status = busy; paintMenu();
+  fetch(`/api/ds4/${action}`, {method: "POST"}).then(r => r.json()).then(s => {
+    const i = menuSel; menu = ds4Menu(s); menuSel = Math.min(i, menu.items.length - 1); paintMenu(); sfx.ok();
+  }).catch(() => { menu.status = "That didn't work"; paintMenu(); });
+}
+
+// ---------- controllers (one DS4Windows profile per pad) and button map ----------
+const PAD_SVG = '<svg viewBox="0 0 70 50"><path d="M17 8Q35 3 53 8Q61 10 64 27Q67 43 60 45Q54 46 50 38Q47 32 44 32H26Q23 32 20 38Q16 46 10 45Q3 43 6 27Q9 10 17 8Z" fill="currentColor" opacity=".85"/></svg>';
+let padsData = null, padTab = 0, padSel = 0;
+function openPads() {
+  $("menu").classList.remove("on"); menu = null; state = "pads"; $("pads").classList.add("on"); paintPads();
+  fetch("/api/pads").then(r => r.json()).then(d => {
+    padsData = d; padSel = Math.min(padSel, Math.max(0, d.pads.length - 1)); if (state === "pads") paintPads();
+  }).catch(() => {});
+}
+function closePads() { $("pads").classList.remove("on"); state = "home"; }
+// [number, DS4 button, sent to the PC as, what it does in Game Mode]
+const BUTTON_MAP = [
+  [1, "L2", "LT (left trigger)", ""], [2, "L1", "LB (left bumper)", ""], [3, "R2", "RT (right trigger)", ""], [4, "R1", "RB (right bumper)", ""],
+  [5, "D-pad", "D-pad", "Move around"], [6, "Share", "Back / View", ""], [7, "Touchpad", "Mouse (see profile)", ""],
+  [8, "Options", "Start / Menu", "Game Mode menu"], [9, "△", "Y", "Steam Big Picture"], [10, "○", "B", "Back / close"],
+  [11, "✕", "A", "Select / Play"], [12, "□", "X", "Controllers & button map"], [13, "Left stick", "Left stick (L3 = press)", "Move around"],
+  [14, "Right stick", "Right stick (R3 = press)", ""], [15, "PS", "Guide", ""],
+];
+const BADGES = {1: [150, 38], 2: [150, 66], 3: [450, 38], 4: [450, 66], 5: [138, 150], 6: [205, 100], 7: [300, 132], 8: [395, 100],
+  9: [460, 112], 10: [500, 150], 11: [460, 188], 12: [420, 150], 13: [220, 225], 14: [380, 225], 15: [300, 218]};
+function mapSvg() {
+  const b = Object.entries(BADGES).map(([n, [x, y]]) =>
+    `<circle cx="${x}" cy="${y}" r="13" fill="#0070d1" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">${n}</text>`).join("");
+  return `<svg class="pic" viewBox="0 0 600 380"><path d="M150 90Q300 55 450 90Q520 100 545 220Q570 330 520 345Q470 355 430 290Q400 245 380 245H220Q200 245 170 290Q130 355 80 345Q30 330 55 220Q80 100 150 90Z" fill="#2a3042" stroke="#6b7491" stroke-width="3"/>
+    <rect x="125" y="22" width="50" height="26" rx="8" fill="#3b4258"/><rect x="425" y="22" width="50" height="26" rx="8" fill="#3b4258"/>
+    <rect x="120" y="52" width="60" height="26" rx="9" fill="#444c66"/><rect x="420" y="52" width="60" height="26" rx="9" fill="#444c66"/>
+    <rect x="240" y="100" width="120" height="62" rx="12" fill="#1c2130" stroke="#6b7491" stroke-width="2"/>
+    <circle cx="220" cy="225" r="32" fill="#1c2130" stroke="#6b7491" stroke-width="3"/><circle cx="380" cy="225" r="32" fill="#1c2130" stroke="#6b7491" stroke-width="3"/>
+    <path d="M130 125h20v20h20v20h-20v20h-20v-20h-20v-20h20z" fill="#1c2130" stroke="#6b7491" stroke-width="2"/>
+    <g font-size="22" font-weight="700" text-anchor="middle"><circle cx="460" cy="112" r="21" fill="#1c2130"/><text x="460" y="121" fill="#3ddbb6">△</text>
+    <circle cx="500" cy="150" r="21" fill="#1c2130"/><text x="500" y="159" fill="#ff5468">○</text>
+    <circle cx="460" cy="188" r="21" fill="#1c2130"/><text x="460" y="197" fill="#7aa7ff">✕</text>
+    <circle cx="420" cy="150" r="21" fill="#1c2130"/><text x="420" y="159" fill="#f28ad0">□</text></g>
+    <rect x="198" y="92" width="14" height="26" rx="5" fill="#1c2130"/><rect x="388" y="92" width="14" height="26" rx="5" fill="#1c2130"/>
+    <circle cx="300" cy="218" r="14" fill="#1c2130"/>${b}</svg>`;
+}
+function paintPads() {
+  $("tabC").classList.toggle("on", padTab === 0); $("tabM").classList.toggle("on", padTab === 1);
+  const body = $("padBody"), foot = $("padFoot");
+  if (padTab === 1) {
+    body.innerHTML = `<div class="map">${mapSvg()}<table><tr><th>Button</th><th>PC sees</th><th>In Game Mode</th></tr>${
+      BUTTON_MAP.map(([n, a, b, c]) => `<tr><td><i>${n}</i>${a}</td><td>${b}</td><td><em>${c || "—"}</em></td></tr>`).join("")}</table></div>`;
+    foot.textContent = "◀ ▶ switch tab  ·  ○ close   (a profile can remap these; this is the stock layout)";
+    return;
+  }
+  if (!padsData) body.innerHTML = '<div class="none">Looking for controllers…</div>';
+  else if (!padsData.pads.length) body.innerHTML = '<div class="none">No controller connected.<br>Turn on a DualShock 4 (hold PS + Share to pair it).</div>';
+  else {
+    body.innerHTML = padsData.pads.map((p, i) => `<div class="pad${i === padSel ? " sel" : ""}">${PAD_SVG}<div><div class="nm"></div>
+      <div class="sub">Controller ${p.slot} · ${p.bt ? "Bluetooth" : "USB"}</div></div><div class="prof"></div></div>`).join("");
+    body.querySelectorAll(".pad").forEach((el, i) => {
+      el.querySelector(".nm").textContent = padsData.pads[i].name;
+      el.querySelector(".prof").textContent = (padsData.pads[i].profile || "Default") + "  ▸";
+    });
+  }
+  foot.textContent = padsData && !padsData.running ? "DS4Windows is off: picking a profile turns it on" : "✕ change profile  ·  ◀ ▶ switch tab  ·  ○ close";
+}
+function padMenu(pad) {
+  openMenu({title: "Profile", status: `Controller ${pad.slot} · ${pad.name}`, back: openPads,
+    items: padsData.profiles.map(p => ({label: p, tick: p === pad.profile, act: () => {
+      menu.status = `Loading ${p}…`; paintMenu();
+      fetch(`/api/ds4/profile/${encodeURIComponent(p)}/${pad.slot}`, {method: "POST"}).then(() => { sfx.ok(); openPads(); })
+        .catch(() => { menu.status = "That didn't work"; paintMenu(); });
+    }}))});
+}
+
+// ---------- profile editor with an on-screen keyboard ----------
+let draft, upper = true, cur = {r: 0, c: 0}, textCfg = null;   // textCfg: plain text entry {done, back} instead of the profile editor
+const KEYROWS = ["1234567890", "QWERTYUIOP", "ASDFGHJKL'", "ZXCVBNM-_.:"].map(r => r.split(""));
+const SPECIAL = ["⇧", "Space", "⌫", "Done"];
+function gridRows() { return [...(textCfg ? [] : [STYLES, AVATARS.map((_, i) => i)]), ...KEYROWS, SPECIAL]; }
+const styleRow = r => !textCfg && r === 0, avatarRow = r => !textCfg && r === 1;
+function openEdit() {
+  $("menu").classList.remove("on");
+  textCfg = null; $("editTitle").textContent = ""; $("editAvatar").style.display = "";
+  draft = {style: STYLES[0], ...me}; upper = true; cur = {r: 1, c: me.avatar}; state = "edit";
+  $("edit").classList.add("on"); paintEdit();
+}
+function openText(title, value, done, back) {
+  $("menu").classList.remove("on");
+  textCfg = {done, back}; $("editTitle").textContent = title; $("editAvatar").style.display = "none";
+  draft = {name: value, avatar: 0}; upper = !value; cur = {r: 0, c: 0}; state = "edit";
+  $("edit").classList.add("on"); paintEdit();
+}
+function closeEdit() { $("edit").classList.remove("on"); state = "home"; }
+function paintEdit() {
+  paintAvatar($("editAvatar"), draft.avatar, draft.name, draft.style);
+  if (!textCfg) $("editTitle").textContent = draft.style.replace(/-/g, " ");
+  $("editName").textContent = draft.name;
+  const keys = $("keys"); keys.innerHTML = "";
+  gridRows().forEach((row, r) => {
+    const div = document.createElement("div"); div.className = "r";
+    row.forEach((k, c) => {
+      const el = document.createElement("div");
+      const isSel = r === cur.r && c === cur.c;
+      if (styleRow(r)) { el.className = "k av st" + (k === draft.style ? " on" : "") + (isSel ? " sel" : ""); paintAvatar(el, draft.avatar, draft.name, k); el.style.background = "linear-gradient(140deg, #ff9a3c, #d6336c)"; }
+      else if (avatarRow(r)) { el.className = "k av" + (k === draft.avatar ? " on" : "") + (isSel ? " sel" : ""); paintAvatar(el, k, draft.name, draft.style); }
+      else {
+        el.className = "k" + (isSel ? " sel" : "");
+        el.textContent = k.length === 1 && !upper ? k.toLowerCase() : k;
+      }
+      div.appendChild(el);
+    });
+    keys.appendChild(div);
+    if (styleRow(r) || avatarRow(r)) keys.insertAdjacentHTML("beforeend", '<div class="gap"></div>');
+  });
+}
+function typeChar(ch) { if (draft.name.length < (textCfg ? 60 : 24)) draft.name += ch; if (upper && /[a-z]/i.test(ch)) upper = false; }
+function editPress() {
+  const k = gridRows()[cur.r][cur.c];
+  if (styleRow(cur.r)) draft.style = k;
+  else if (avatarRow(cur.r)) draft.avatar = k;
+  else if (k === "⇧") upper = !upper;
+  else if (k === "Space") typeChar(" ");
+  else if (k === "⌫") draft.name = draft.name.slice(0, -1);
+  else if (k === "Done") { saveEdit(); return; }
+  else typeChar(upper ? k : k.toLowerCase());
+  sfx.move(); paintEdit();
+}
+function saveEdit() {
+  sfx.ok();
+  if (textCfg) { const c = textCfg; textCfg = null; closeEdit(); return c.done(draft.name.trim()); }
+  fetch("/api/profile", {method: "POST", body: JSON.stringify(draft)}).then(r => r.json()).then(p => { me = p; applyProfile(); });
+  me = {...draft, name: draft.name.trim() || me.name}; applyProfile();
+  $("edit").classList.remove("on"); state = "home";
+}
+function editMove(k) {
+  const rows = gridRows();
+  if (k === "up" || k === "down") {
+    const r = Math.max(0, Math.min(rows.length - 1, cur.r + (k === "up" ? -1 : 1)));
+    // keep roughly the same horizontal position between rows of different lengths
+    cur.c = Math.round(cur.c / Math.max(1, rows[cur.r].length - 1) * (rows[r].length - 1)); cur.r = r;
+    if (styleRow(r)) cur.c = STYLES.indexOf(draft.style);   // entering the style row keeps the current style
+  } else cur.c = Math.max(0, Math.min(rows[cur.r].length - 1, cur.c + (k === "left" ? -1 : 1)));
+  if (styleRow(cur.r)) draft.style = STYLES[cur.c];   // the style follows the cursor, no click needed
+  sfx.move(); paintEdit();
+}
+
+function input(k) {
+  if (state === "boot") { if (k === "ok") show("user"); return; }
+  if (state === "user") { if (k === "ok") { sfx.ok(); show("home"); } return; }
+  if (state === "edit") {
+    if (k === "ok") editPress();
+    else if (k === "back") { sfx.back(); const c = textCfg; textCfg = null; closeEdit(); if (c) c.back(); }
+    else if (k === "tri") { draft.name = draft.name.slice(0, -1); paintEdit(); }
+    else if (["up", "down", "left", "right"].includes(k)) editMove(k);
+    return;
+  }
+  if (state === "pads") {
+    if (k === "back") { sfx.back(); closePads(); }
+    else if (k === "left" || k === "right") { padTab = k === "right" ? 1 : 0; sfx.move(); paintPads(); }
+    else if (padTab === 0 && padsData && padsData.pads.length) {
+      const n = padsData.pads.length;
+      if (k === "up" || k === "down") { padSel = (padSel + (k === "up" ? n - 1 : 1)) % n; sfx.move(); paintPads(); }
+      else if (k === "ok") { sfx.ok(); padMenu(padsData.pads[padSel]); }
+    }
+    return;
+  }
+  if (state === "menu") {
+    const n = menu.items.length, it = menu.items[menuSel];
+    if ((k === "up" || k === "down") && n) { stepMenu(k === "up" ? -1 : 1); sfx.move(); paintMenu(); }
+    else if ((k === "ok" || (k === "right" && menu.arrows)) && it && it.act) it.act();
+    else if (k === "back" || (k === "left" && menu.arrows)) { sfx.back(); menu.back ? menu.back() : closeMenu(); }
+    return;
+  }
+  if (state === "detail") {
+    if ($("launch").classList.contains("on")) { if (k === "back") $("launch").classList.remove("on"); return; }
+    if (k === "ok") launch();
+    else if (k === "back") { sfx.back(); closeDetail(); }
+    return;
+  }
+  if (state === "home") {
+    if ($("launch").classList.contains("on")) { if (k === "back") $("launch").classList.remove("on"); return; }
+    if (k === "left" && sel > 0) { sel--; sfx.move(); render(); }
+    else if (k === "right" && sel < games.length - 1) { sel++; sfx.move(); render(); }
+    else if (k === "ok") games.length ? openDetail() : openSettings();
+    else if (k === "tri") bigPicture();
+    else if (k === "sq") openPads();
+    else if (k === "back" || k === "menu") { sfx.back(); openMenu(mainMenu()); }
+  }
+}
+
+const KEYS = {ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down", Enter: "ok", " ": "ok", Select: "ok", Accept: "ok",
+  Escape: "back", Backspace: "back", BrowserBack: "back", t: "tri", y: "tri", c: "sq", m: "menu", ContextMenu: "menu"};
+addEventListener("keydown", e => {
+  if (state === "edit" && e.key.length === 1 && e.key !== " " ) { e.preventDefault(); typeChar(e.key); paintEdit(); return; }
+  if (state === "edit" && e.key === "Backspace") { e.preventDefault(); draft.name = draft.name.slice(0, -1); paintEdit(); return; }
+  const k = KEYS[e.key]; if (k) { e.preventDefault(); input(k); }
+});
+
+// TV remote keys forwarded by Luna TV (Apollo drops the remote's own controller input). The TV only forwards
+// while this page reports focus, so a game in front gets the remote back.
+new EventSource("/api/events").onmessage = e => input(e.data);
+const reportFocus = () => post("/api/focus", {focused: document.hasFocus() && !document.hidden});
+addEventListener("focus", reportFocus); addEventListener("blur", reportFocus);
+setInterval(reportFocus, 2000); reportFocus();
+
+// Moonlight may pass the TV remote's OK through as a mouse click and Back as a right click
+addEventListener("mousedown", e => { e.preventDefault(); input(e.button === 2 ? "back" : "ok"); });
+addEventListener("contextmenu", e => e.preventDefault());
+
+// gamepad: Xbox layout as seen through Moonlight/DS4Windows (A=✕, B=○, Y=△), with key repeat on held directions
+const held = {};
+function pollPads(t) {
+  const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : [];
+  const now = {};
+  for (const p of pads) {
+    const b = i => p.buttons[i] && p.buttons[i].pressed, ax = p.axes;
+    now.ok ||= b(0); now.back ||= b(1); now.tri ||= b(3); now.sq ||= b(2); now.menu ||= b(9);
+    now.left ||= b(14) || ax[0] < -0.6; now.right ||= b(15) || ax[0] > 0.6;
+    now.up ||= b(12) || ax[1] < -0.6; now.down ||= b(13) || ax[1] > 0.6;
+  }
+  for (const k of ["ok", "back", "tri", "sq", "menu", "left", "right", "up", "down"]) {
+    if (now[k]) {
+      const dir = ["left", "right", "up", "down"].includes(k);
+      if (!held[k]) { held[k] = t + 380; input(k); }
+      else if (dir && t > held[k]) { held[k] = t + 110; input(k); }
+    } else held[k] = 0;
+  }
+  requestAnimationFrame(pollPads);
+}
+requestAnimationFrame(pollPads);
+
+function tick() { $("clock").textContent = new Date().toLocaleTimeString([], {hour: "numeric", minute: "2-digit"}); }
+tick(); setInterval(tick, 10000);
+</script>
+</body>
+</html>

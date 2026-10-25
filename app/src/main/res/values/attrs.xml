@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Button/nav look. Values per style live in themes.xml (default) and Skin.Glass / Skin.Frosted. -->
+<resources>
+    <attr name="barFill1" format="color" />
+    <attr name="barFill2" format="color" />
+    <attr name="barStroke" format="color" />
+    <attr name="btnFill1" format="color" />
+    <attr name="btnFill2" format="color" />
+    <attr name="tileFill1" format="color" />
+    <attr name="tileFill2" format="color" />
+    <attr name="rimStroke" format="color" />
+    <attr name="rimW" format="dimension" />
+</resources>

@@ -1,0 +1,23 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.bearacle.tv'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.bearacle.tv'
+        minSdk 28
+        targetSdk 33
+        versionCode 3
+        versionName '2.1'
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+        }
+    }
+    lint { checkReleaseBuilds false }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
