@@ -22,6 +22,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.RenderEffect;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
@@ -163,6 +165,7 @@ public class MainActivity extends Activity {
         int skin = skinIndex();
         if (SKIN_STYLE[skin] != 0) getTheme().applyStyle(SKIN_STYLE[skin], true); // must be on the theme before the layout inflates
         setContentView(layoutRes());
+        applyPicture();
         wall = findViewById(R.id.wall);
         dim = findViewById(R.id.dim);
         header = findViewById(R.id.header);
@@ -835,6 +838,8 @@ public class MainActivity extends Activity {
         ccTile(R.drawable.ic_fire, "Fire pit", "Cozy standby", v -> fireplace());
         ccTile(R.drawable.ic_brightness, "Brighter", brightLabel(), v -> stepBrightness(1, v));
         ccTile(R.drawable.ic_brightness, "Dimmer", brightLabel(), v -> stepBrightness(-1, v));
+        ccTile(R.drawable.ic_image, "Color", pictureLabel("pColor", COLOR_STEPS), v -> stepPicture("pColor", COLOR_STEPS, v));
+        ccTile(R.drawable.ic_image, "Contrast", pictureLabel("pContrast", CONTRAST_STEPS), v -> stepPicture("pContrast", CONTRAST_STEPS, v));
         ccTile(R.drawable.ic_tv, "Screensaver", "Start now", v -> screensaver());
         ccTile(R.drawable.ic_game, "Game Mode", "Stream your PC", v -> startGame());
         ccTile(R.drawable.ic_tv, "Setup", "Run the setup again", v -> start(new Intent(this, SetupActivity.class)));
@@ -1005,6 +1010,34 @@ public class MainActivity extends Activity {
             String title = ((TextView) col.getChildAt(0)).getText().toString();
             if (title.equals("Brighter") || title.equals("Dimmer")) ((TextView) col.getChildAt(1)).setText(brightLabel());
         }
+    }
+
+    // The TV's own Picture menu (backlight, contrast...) is stored behind a signature permission and is applied to
+    // video, not to the app layer, so the launcher can't follow it. These two are the launcher's own picture controls.
+    static final float[] COLOR_STEPS = {0.9f, 1f, 1.15f, 1.3f, 1.45f};
+    static final float[] CONTRAST_STEPS = {0.95f, 1f, 1.1f, 1.2f, 1.3f};
+
+    int pictureIndex(String key) { return prefs.getInt(key, 2); } // default one notch above neutral: the glass UI looks flat otherwise
+
+    String pictureLabel(String key, float[] steps) { return Math.round(steps[pictureIndex(key)] * 100) + "%"; }
+
+    void stepPicture(String key, float[] steps, View tile) {
+        prefs.edit().putInt(key, (pictureIndex(key) + 1) % steps.length).apply();
+        ((TextView) ((ViewGroup) ((ViewGroup) tile).getChildAt(1)).getChildAt(1)).setText(pictureLabel(key, steps));
+        applyPicture();
+    }
+
+    /** Colour and contrast over the whole launcher window (Android 12+). */
+    void applyPicture() {
+        if (Build.VERSION.SDK_INT < 31) return;
+        float sat = COLOR_STEPS[pictureIndex("pColor")], c = CONTRAST_STEPS[pictureIndex("pContrast")];
+        View root = findViewById(android.R.id.content);
+        if (sat == 1f && c == 1f) { root.setRenderEffect(null); return; }
+        ColorMatrix m = new ColorMatrix();
+        m.setSaturation(sat);
+        float t = 127.5f * (1 - c); // contrast pivots on mid grey
+        m.postConcat(new ColorMatrix(new float[]{c, 0, 0, 0, t, 0, c, 0, 0, t, 0, 0, c, 0, t, 0, 0, 0, 1, 0}));
+        root.setRenderEffect(RenderEffect.createColorFilterEffect(new ColorMatrixColorFilter(m)));
     }
 
     void sleep() {
