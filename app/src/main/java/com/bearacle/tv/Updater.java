@@ -91,7 +91,7 @@ final class Updater {
                 s.fsync(os);
             }
             // mutable: the system adds the status extras to this intent
-            s.commit(PendingIntent.getBroadcast(c, id, new Intent(ACTION).setPackage(c.getPackageName()),
+            s.commit(PendingIntent.getBroadcast(c, id, new Intent(c, Result.class).setAction(ACTION), // explicit: the receiver has no intent filter
                     PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_UPDATE_CURRENT).getIntentSender());
         }
     }
