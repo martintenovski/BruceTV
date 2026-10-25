@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dock: big clock, one floating dock with the apps and the tools, quick buttons top right. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/wall"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:id="@+id/dim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#46000000"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/scrim" />
+
+    <FrameLayout
+        android:id="@+id/home"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="56dp"
+            android:layout_marginTop="30dp"
+            android:orientation="vertical">
+
+            <TextClock
+                style="@style/Shadowed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-light"
+                android:format12Hour="h:mm"
+                android:format24Hour="H:mm"
+                android:includeFontPadding="false"
+                android:textSize="96sp" />
+
+            <TextView
+                android:id="@+id/greeting"
+                style="@style/Shadowed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/weather"
+                style="@style/Shadowed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:alpha="0.9"
+                android:textSize="13sp" />
+
+            <TextClock
+                style="@style/Shadowed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:alpha="0.9"
+                android:format12Hour="EEEE, MMM d"
+                android:format24Hour="EEEE, MMM d"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|top"
+            android:layout_marginTop="28dp"
+            android:layout_marginEnd="48dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/statusPill"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:background="@drawable/chip_bg"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="16dp">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:duplicateParentState="true"
+                    android:src="@drawable/ic_wifi"
+                    android:tint="#000000" />
+
+                <TextView
+                    android:id="@+id/netLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:duplicateParentState="true"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="#000000"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <ImageView android:id="@+id/actWall" style="@style/IconChip" android:layout_marginStart="8dp" android:contentDescription="Wallpapers" android:src="@drawable/ic_image" />
+            <ImageView android:id="@+id/actSettings" style="@style/IconChip" android:layout_marginStart="8dp" android:contentDescription="Settings" android:src="@drawable/ic_settings" />
+            <ImageView android:id="@+id/actSleep" style="@style/IconChip" android:layout_marginStart="8dp" android:contentDescription="Sleep" android:src="@drawable/ic_power" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/dockLabel"
+            style="@style/Shadowed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="136dp"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="48dp"
+            android:layout_marginEnd="48dp"
+            android:layout_marginBottom="34dp"
+            android:background="@drawable/dock_bg"
+            android:clipChildren="true"
+            android:clipToPadding="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <HorizontalScrollView
+                android:id="@+id/favScroll"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:clipChildren="true"
+                android:clipToPadding="false"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/favRow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingTop="12dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="12dp" />
+            </HorizontalScrollView>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="4dp"
+                android:background="#33FFFFFF" />
+
+            <ImageView android:id="@+id/actApps" style="@style/ToolBtn" android:contentDescription="All apps" android:src="@drawable/ic_apps" />
+            <ImageView android:id="@+id/actInputs" style="@style/ToolBtn" android:contentDescription="Inputs" android:src="@drawable/ic_input" />
+            <ImageView android:id="@+id/actGame" style="@style/ToolBtn" android:contentDescription="Game Mode" android:src="@drawable/ic_game" />
+            <ImageView android:id="@+id/actRecent" style="@style/ToolBtn" android:contentDescription="Recent apps" android:src="@drawable/ic_recent" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/homeHint"
+            style="@style/Shadowed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="10dp"
+            android:alpha="0.6"
+            android:text="Hold OK on an app for options"
+            android:textSize="12sp" />
+    </FrameLayout>
+
+    <include layout="@layout/ov_nav" />
+    <include layout="@layout/ov_top" />
+
+    <Space
+        android:id="@+id/header"
+        android:layout_width="0dp"
+        android:layout_height="0dp" />
+</FrameLayout>

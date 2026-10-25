@@ -1,0 +1,5 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient android:angle="270" android:startColor="?attr/barFill1" android:endColor="?attr/barFill2" />
+    <stroke android:width="?attr/rimW" android:color="?attr/barStroke" />
+    <corners android:radius="999dp" />
+</shape>

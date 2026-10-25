@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bottom bar: labelled icon bar along the bottom (stays over Apps and Recent), calm top. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/wall"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:id="@+id/dim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#46000000"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/scrim" />
+
+    <LinearLayout
+        android:id="@+id/home"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:orientation="vertical"
+        android:paddingStart="48dp"
+        android:paddingTop="26dp"
+        android:paddingEnd="48dp"
+        android:paddingBottom="90dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/brand"
+                style="@style/Shadowed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="Luna TV"
+                android:textSize="17sp" />
+
+            <TextView
+                android:id="@+id/weather"
+                style="@style/Shadowed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/brand"
+                android:alpha="0.9"
+                android:textSize="13sp" />
+
+            <LinearLayout
+                android:id="@+id/statusPill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/status_pill"
+                android:focusable="true"
+                android:gravity="end"
+                android:orientation="vertical"
+                android:paddingStart="12dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="4dp">
+
+                <TextClock
+                    style="@style/Shadowed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-light"
+                    android:format12Hour="h:mm"
+                    android:format24Hour="H:mm"
+                    android:includeFontPadding="false"
+                    android:textSize="40sp" />
+
+                <TextClock
+                    style="@style/Shadowed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:format12Hour="EEE, MMM d"
+                    android:format24Hour="EEE, MMM d"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/greeting"
+            style="@style/Shadowed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:textSize="52sp" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:id="@+id/continueBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/Shadowed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="Continue Watching"
+                android:textSize="14sp" />
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="-10dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/continueRow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp" />
+            </HorizontalScrollView>
+        </LinearLayout>
+
+        <HorizontalScrollView
+            android:id="@+id/favScroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="-10dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/favRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="6dp" />
+        </HorizontalScrollView>
+
+        <TextView
+            android:id="@+id/homeHint"
+            style="@style/Shadowed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:alpha="0.6"
+            android:text="Hold OK on an app for options"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <include layout="@layout/ov_nav" />
+    <include layout="@layout/ov_top" />
+
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="66dp"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="48dp"
+        android:layout_marginEnd="48dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/bar_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="3dp">
+
+        <TextView android:id="@+id/navHome" style="@style/NavItem" android:drawableTop="@drawable/ic_home" android:text="Home" />
+        <TextView android:id="@+id/navApps" style="@style/NavItem" android:drawableTop="@drawable/ic_apps" android:text="Apps" />
+        <TextView android:id="@+id/navRecent" style="@style/NavItem" android:drawableTop="@drawable/ic_recent" android:text="Recent" />
+        <TextView android:id="@+id/navInputs" style="@style/NavItem" android:drawableTop="@drawable/ic_input" android:text="Inputs" />
+        <View android:layout_width="1dp" android:layout_height="30dp" android:layout_marginStart="4dp" android:layout_marginEnd="4dp" android:background="#33FFFFFF" />
+        <TextView android:id="@+id/navGame" style="@style/NavItem" android:background="@drawable/nav_game" android:drawableTop="@drawable/ic_game" android:text="Game Mode" />
+        <View android:layout_width="1dp" android:layout_height="30dp" android:layout_marginStart="4dp" android:layout_marginEnd="4dp" android:background="#33FFFFFF" />
+        <TextView android:id="@+id/actWall" style="@style/NavItem" android:drawableTop="@drawable/ic_image" android:text="Wallpaper" />
+        <TextView android:id="@+id/navSettings" style="@style/NavItem" android:drawableTop="@drawable/ic_settings" android:text="Settings" />
+    </LinearLayout>
+</FrameLayout>

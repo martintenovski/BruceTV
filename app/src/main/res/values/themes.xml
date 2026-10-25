@@ -1,0 +1,164 @@
+<resources>
+    <style name="Theme.Bearacle" parent="android:Theme.DeviceDefault.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorAccent">#4FA3FF</item>
+        <item name="barFill1">#66000000</item>
+        <item name="barFill2">#66000000</item>
+        <item name="barStroke">#33FFFFFF</item>
+        <item name="btnFill1">#99101318</item>
+        <item name="btnFill2">#99101318</item>
+        <item name="tileFill1">#2AFFFFFF</item>
+        <item name="tileFill2">#2AFFFFFF</item>
+        <item name="rimStroke">#26FFFFFF</item>
+        <item name="rimW">1dp</item>
+    </style>
+
+    <!-- Applied over Theme.Bearacle by MainActivity (pref "skin"): clear glass with a bright rim. -->
+    <style name="SkinGlass">
+        <item name="barFill1">#48FFFFFF</item>
+        <item name="barFill2">#1AFFFFFF</item>
+        <item name="barStroke">#99FFFFFF</item>
+        <item name="btnFill1">#40FFFFFF</item>
+        <item name="btnFill2">#14FFFFFF</item>
+        <item name="tileFill1">#40FFFFFF</item>
+        <item name="tileFill2">#14FFFFFF</item>
+        <item name="rimStroke">#80FFFFFF</item>
+        <item name="rimW">1.5dp</item>
+    </style>
+
+    <!-- Milky, more opaque tint with a soft rim. -->
+    <style name="SkinFrosted">
+        <item name="barFill1">#66E4EBF5</item>
+        <item name="barFill2">#4DD3DDEC</item>
+        <item name="barStroke">#55FFFFFF</item>
+        <item name="btnFill1">#5CE4EBF5</item>
+        <item name="btnFill2">#46D3DDEC</item>
+        <item name="tileFill1">#52FFFFFF</item>
+        <item name="tileFill2">#3DFFFFFF</item>
+        <item name="rimStroke">#44FFFFFF</item>
+        <item name="rimW">1dp</item>
+    </style>
+
+    <style name="Pill">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/pill_text</item>
+        <item name="android:background">@drawable/pill</item>
+        <item name="android:focusable">true</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="Action">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">6dp</item>
+        <item name="android:layout_marginEnd">6dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:drawableTint">#000000</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#000000</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:background">@drawable/btn_white</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- Round icon-only button (side rail, top bars). -->
+    <style name="IconBtn">
+        <item name="android:layout_width">36dp</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:tint">@color/pill_text</item>
+        <item name="android:background">@drawable/pill</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="IconChip" parent="IconBtn">
+        <item name="android:tint">#000000</item>
+        <item name="android:background">@drawable/chip_bg</item>
+    </style>
+
+    <!-- Square icon button (dock tools). -->
+    <style name="ToolBtn">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_marginStart">6dp</item>
+        <item name="android:padding">13dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:tint">#000000</item>
+        <item name="android:background">@drawable/tool_bg</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- Icon over label (bottom nav bar). -->
+    <style name="NavItem">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_margin">3dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:drawablePadding">2dp</item>
+        <item name="android:drawableTint">#000000</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textColor">#000000</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:background">@drawable/nav_item</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- Bento tile: icon on top, title and subtitle at the bottom. -->
+    <style name="BentoTile">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_margin">5dp</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">14dp</item>
+        <item name="android:background">@drawable/btn_white</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="BentoTitle" parent="Shadowed">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="BentoSub" parent="Shadowed">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:alpha">0.8</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <!-- Text on the white Bento tiles. -->
+    <style name="BentoBtnTitle" parent="BentoTitle">
+        <item name="android:textColor">#000000</item>
+        <item name="android:shadowRadius">0</item>
+    </style>
+
+    <style name="BentoBtnSub" parent="BentoSub">
+        <item name="android:textColor">#000000</item>
+        <item name="android:shadowRadius">0</item>
+        <item name="android:alpha">0.7</item>
+    </style>
+
+    <style name="Shadowed">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:shadowColor">#99000000</item>
+        <item name="android:shadowRadius">12</item>
+        <item name="android:shadowDy">2</item>
+    </style>
+</resources>

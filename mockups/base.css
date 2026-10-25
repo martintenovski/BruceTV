@@ -1,0 +1,33 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; color: #fff;
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; }
+.wall { position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 72% 28%, rgba(255,190,120,.55), transparent 70%),
+    linear-gradient(180deg, #1b2a52 0%, #3b3f78 38%, #a1577f 62%, #e3865f 78%, #2a1d3a 78.2%, #120d22 100%);
+}
+.wall::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 24%;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.35)); }
+.hills { position: absolute; left: 0; right: 0; bottom: 0; height: 36%;
+  background:
+    radial-gradient(ellipse 55% 100% at 18% 100%, #1a1530 60%, transparent 61%),
+    radial-gradient(ellipse 60% 85% at 62% 100%, #140f26 60%, transparent 61%),
+    radial-gradient(ellipse 50% 70% at 100% 100%, #0e0a1d 60%, transparent 61%); }
+.scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.45) 0%, transparent 28%, transparent 55%, rgba(0,0,0,.55) 100%); }
+.glass { background: rgba(10,14,28,.42); border: 1px solid rgba(255,255,255,.16); backdrop-filter: blur(22px); }
+.sh { text-shadow: 0 2px 14px rgba(0,0,0,.55); }
+.app { border-radius: 16px; display: grid; place-items: center; font-weight: 700; color: #fff; letter-spacing: .01em;
+  box-shadow: 0 10px 30px rgba(0,0,0,.4); text-align: center; }
+.c1 { background: linear-gradient(135deg, #1fb36a, #0b6b8a); }
+.c2 { background: linear-gradient(135deg, #e53935, #8e1b1b); }
+.c3 { background: linear-gradient(135deg, #7e57ff, #3a1fa8); }
+.c4 { background: linear-gradient(135deg, #3aa0ff, #0b4fb0); }
+.c5 { background: linear-gradient(135deg, #e50914, #5a0308); }
+.c6 { background: linear-gradient(135deg, #113ccf, #0a1f6b); }
+.c7 { background: linear-gradient(135deg, #00a8e1, #0a4d73); }
+.c8 { background: linear-gradient(135deg, #8a4dff, #2d1470); }
+.c9 { background: linear-gradient(135deg, #0a2a8c, #02051c); }
+.c10 { background: linear-gradient(135deg, #5a5f6b, #1e2128); }
+.clock { font-weight: 200; letter-spacing: -.02em; }
+svg.i { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.12em; }
+.tag { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-size: 15px; color: rgba(255,255,255,.55); letter-spacing: .08em; }
