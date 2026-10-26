@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
@@ -40,7 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class SetupActivity extends Activity {
 
-    static final int WELCOME = 0, LAYOUT = 1, GAME = 2, MOONLIGHT = 3, FIND = 4, PAIR = 5, GAMES = 6, DONE = 7;
+    static final int WELCOME = 0, LAYOUT = 1, GAME = 2, MOONLIGHT = 3, FIND = 4, PAIR = 5, GAMES = 6, DONE = 7, HOME = 8;
     static final String MOONLIGHT_PKG = "com.limelight";
 
     final Handler ui = new Handler(Looper.getMainLooper());
@@ -77,7 +78,7 @@ public class SetupActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (step == MOONLIGHT) go(MOONLIGHT, false); // back from the Play Store
+        if (step == MOONLIGHT || step == HOME) go(step, false); // back from the Play Store / Accessibility settings
     }
 
     @Override
@@ -103,6 +104,7 @@ public class SetupActivity extends Activity {
         switch (s) {
             case WELCOME: welcome(); break;
             case LAYOUT: layout(); break;
+            case HOME: home(); break;
             case GAME: game(); break;
             case MOONLIGHT: moonlight(); break;
             case FIND: find(); break;
@@ -146,7 +148,7 @@ public class SetupActivity extends Activity {
             name.setPadding(0, px(8), 0, 0);
             card.addView(name);
             card.setOnFocusChangeListener((v, f) -> v.animate().scaleX(f ? 1.05f : 1f).scaleY(f ? 1.05f : 1f).setDuration(140).start());
-            card.setOnClickListener(v -> { prefs.edit().putString("layout", l[0]).apply(); next(GAME); });
+            card.setOnClickListener(v -> { prefs.edit().putString("layout", l[0]).apply(); next(HOME); });
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
             lp.setMargins(px(7), 0, px(7), 0);
             cards.addView(card, lp);
@@ -154,6 +156,24 @@ public class SetupActivity extends Activity {
         }
         box.addView(cards);
         if (focus != null) focus.requestFocus();
+    }
+
+    /** The remote's Home button only opens Bruce TV while its accessibility service is on; apps can't switch it on themselves, so ask and open the screen. */
+    boolean homeKeyOn() {
+        String on = Settings.Secure.getString(getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+        return on != null && on.contains(getPackageName() + "/");
+    }
+
+    void home() {
+        box.setGravity(Gravity.CENTER);
+        if (homeKeyOn()) {
+            head("The Home button opens Bruce TV \u2713", "Pressing Home on the remote brings you back here.");
+            row(button("Next", () -> next(GAME)));
+            return;
+        }
+        head("Make the Home button open Bruce TV", "Google TV insists on its own home screen. To bring yours back, turn on \u201cBruce TV Home button\u201d in Accessibility. "
+                + "Bruce TV only uses it for the Home button, Sleep and Restart.\n\nOpen Accessibility, pick \u201cBruce TV Home button\u201d and switch it On.");
+        row(button("Open Accessibility settings", () -> startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))), button("Skip", () -> next(GAME)));
     }
 
     void game() {
