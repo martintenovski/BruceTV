@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bruce TV</title>
+<meta name="description" content="A fast, good-looking home screen for Google TV with a console-style Game Mode that streams your gaming PC. Free, open source, 230 KB.">
+<meta property="og:title" content="Bruce TV">
+<meta property="og:description" content="Your Google TV home screen, done right. Four layouts, Control Center and Game Mode.">
+<meta property="og:image" content="img/home-classic.jpg">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232b6bff'/%3E%3Crect x='7' y='9' width='18' height='11' rx='2' fill='white'/%3E%3Crect x='12' y='23' width='8' height='2' rx='1' fill='white'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #07080d; --panel: #10121b; --line: #232636; --text: #f2f3f8; --muted: #9a9fb5;
+  --blue: #2b6bff; --violet: #8a3cff; --grad: linear-gradient(135deg, #2b6bff, #8a3cff);
+  --r: 20px;
+}
+@media (prefers-color-scheme: light) {
+  :root { --bg: #f6f7fb; --panel: #fff; --line: #e1e4ee; --text: #0e1018; --muted: #5a607a; }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.55;
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: inherit; }
+.wrap { width: min(1080px, 100% - 32px); margin: 0 auto; }
+nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+.logo { font-weight: 700; font-size: 20px; letter-spacing: -.01em; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+.logo i { width: 30px; height: 30px; border-radius: 9px; background: var(--grad); display: grid; place-items: center; }
+.logo i { color: #fff; font-size: 15px; }
+nav .links { display: flex; gap: 22px; align-items: center; color: var(--muted); font-size: 15px; }
+nav .links a { text-decoration: none; }
+nav .links a:hover { color: var(--text); }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 999px; font-weight: 600;
+  text-decoration: none; background: var(--grad); color: #fff; box-shadow: 0 10px 30px -10px rgba(80, 90, 255, .7);
+  transition: transform .15s, box-shadow .15s; }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 14px 34px -10px rgba(80, 90, 255, .9); }
+.btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); box-shadow: none; }
+.btn.ghost:hover { border-color: var(--muted); }
+.hero { text-align: center; padding: 56px 0 24px; position: relative; }
+.hero::before { content: ""; position: absolute; inset: -120px 0 auto; height: 520px; z-index: -1;
+  background: radial-gradient(ellipse at 50% 0, rgba(80, 90, 255, .28), transparent 65%); }
+.pill { display: inline-block; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 14px; }
+h1 { font-size: clamp(38px, 7vw, 68px); line-height: 1.05; letter-spacing: -.03em; margin: 22px auto 18px; max-width: 14ch; }
+h1 em { font-style: normal; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lede { color: var(--muted); font-size: clamp(17px, 2.2vw, 20px); max-width: 52ch; margin: 0 auto 30px; }
+.cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.shot { margin: 56px auto 0; border-radius: 18px; border: 1px solid var(--line); overflow: hidden;
+  box-shadow: 0 40px 90px -30px rgba(60, 70, 255, .45); }
+.shot img { display: block; width: 100%; height: auto; }
+section { padding: 84px 0 0; }
+h2 { font-size: clamp(28px, 4.5vw, 40px); letter-spacing: -.02em; margin: 0 0 10px; }
+.sub { color: var(--muted); margin: 0 0 36px; max-width: 56ch; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 26px; }
+.card h3 { margin: 12px 0 6px; font-size: 18px; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+.ico { width: 42px; height: 42px; border-radius: 12px; background: var(--grad); color: #fff; display: grid; place-items: center; font-size: 18px; }
+.layouts { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+figure { margin: 0; }
+figure img { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); }
+figcaption { margin-top: 10px; font-weight: 600; text-align: center; }
+figcaption span { display: block; font-weight: 400; color: var(--muted); font-size: 14px; }
+.steps { counter-reset: s; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); padding: 0; list-style: none; }
+.steps li { counter-increment: s; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 26px; }
+.steps li::before { content: counter(s); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--grad); color: #fff; font-weight: 700; margin-bottom: 12px; }
+.steps b { display: block; margin-bottom: 4px; }
+.steps small { color: var(--muted); font-weight: 400; }
+.steps span { color: var(--muted); font-size: 15px; }
+code { background: rgba(120, 130, 170, .18); padding: 2px 7px; border-radius: 6px; font-size: .9em; }
+.final { text-align: center; }
+.final .btn { margin-top: 36px; }
+.final .card { padding: 54px 24px; background: radial-gradient(ellipse at 50% 0, rgba(80, 90, 255, .22), transparent 70%), var(--panel); }
+footer { color: var(--muted); font-size: 14px; text-align: center; padding: 48px 0; }
+footer a { text-decoration: none; border-bottom: 1px solid var(--line); }
+@media (max-width: 560px) { nav .links a:not(.btn) { display: none; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="#"><i class="fa-solid fa-tv" aria-hidden="true"></i>Bruce TV</a>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#layouts">Layouts</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/martintenovski/BruceTV"><i class="fa-brands fa-github" aria-hidden="true"></i> GitHub</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <span class="pill">Free · open source · 230 KB</span>
+    <h1>Your Google TV, <em>finally yours.</em></h1>
+    <p class="lede">A fast home screen with the layout you pick, quick controls one button away, and a console-style Game Mode that streams your gaming PC.</p>
+    <div class="cta">
+      <a class="btn" href="https://github.com/martintenovski/BruceTV/releases/latest"><i class="fa-solid fa-download" aria-hidden="true"></i>Download the APK</a>
+      <a class="btn ghost" href="https://github.com/martintenovski/BruceTV"><i class="fa-brands fa-github" aria-hidden="true"></i>View on GitHub</a>
+    </div>
+    <div class="shot"><img src="img/home-classic.jpg" alt="Bruce TV home screen in the Classic layout" width="1600" height="900"></div>
+  </header>
+
+  <section id="features">
+    <h2>Everything on one screen</h2>
+    <p class="sub">No ads, no recommendations feed. Just your apps and the controls you actually reach for.</p>
+    <div class="grid">
+      <div class="card"><div class="ico"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></div><h3>Game Mode</h3><p>Steam, Epic, Xbox, GOG and Ubisoft games with cover art, streamed to the TV through Moonlight and Apollo.</p></div>
+      <div class="card"><div class="ico"><i class="fa-solid fa-house" aria-hidden="true"></i></div><h3>Home button that works</h3><p>Google TV forces its own home. Bruce TV brings yours back every time you press Home.</p></div>
+      <div class="card"><div class="ico"><i class="fa-solid fa-sliders" aria-hidden="true"></i></div><h3>Control Center</h3><p>Brightness, color and contrast, Wi-Fi, Bluetooth, inputs, sleep, wallpaper and a cozy fire pit standby.</p></div>
+      <div class="card"><div class="ico"><i class="fa-solid fa-broom" aria-hidden="true"></i></div><h3>Recent apps</h3><p>See what's running and free RAM, close apps, optimize memory or restart the TV in two clicks.</p></div>
+      <div class="card"><div class="ico"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i></div><h3>Updates built in</h3><p>New versions install from inside the app, with the release notes shown first.</p></div>
+      <div class="card"><div class="ico"><i class="fa-solid fa-feather" aria-hidden="true"></i></div><h3>Tiny and fast</h3><p>Plain Java, zero libraries. Light enough for a 1.8 GB budget TV.</p></div>
+    </div>
+  </section>
+
+  <section id="layouts">
+    <h2>Four layouts, one tap</h2>
+    <p class="sub">Switch any time in Control Center › Home layout.</p>
+    <div class="layouts">
+      <figure><img src="img/home-classic.jpg" alt="Classic layout" loading="lazy"><figcaption>Classic<span>The familiar top bar and app row</span></figcaption></figure>
+      <figure><img src="img/home-dock.jpg" alt="Dock layout" loading="lazy"><figcaption>Dock<span>A floating dock, like a desktop</span></figcaption></figure>
+      <figure><img src="img/home-bento.jpg" alt="Bento layout" loading="lazy"><figcaption>Bento<span>One grid of big tiles</span></figcaption></figure>
+      <figure><img src="img/home-bottom.jpg" alt="Bottom bar layout" loading="lazy"><figcaption>Bottom bar<span>Wallpaper first, controls below</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Controls at your fingertips</h2>
+    <p class="sub">Tweak the picture, free up memory and manage apps without digging through system menus.</p>
+    <div class="layouts">
+      <figure><img src="img/control-center.jpg" alt="Control Center" loading="lazy"><figcaption>Control Center<span>Brightness, color, Wi-Fi, sleep and more</span></figcaption></figure>
+      <figure><img src="img/recent.jpg" alt="Recent apps" loading="lazy"><figcaption>Recent apps<span>Close apps, optimize RAM, restart</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>Set up in three steps</h2>
+    <p class="sub">The launcher works on its own. Game Mode also needs a Windows gaming PC, so get that ready first.</p>
+    <ol class="steps">
+      <li><b>Prepare your PC <small>(Game Mode only)</small></b><span>Install <a href="https://github.com/ClassicOldSong/Apollo/releases">Apollo</a>, then run <code>pc/setup.ps1</code> once. It adds Game Mode, opens the firewall for your home network and finds your Steam, Epic, Xbox, GOG and Ubisoft games.</span></li>
+      <li><b>Install on the TV</b><span>Turn on Wireless debugging, then run <code>.\install-tv.ps1 -Tv &lt;ip:port&gt;</code> from the <a href="https://github.com/martintenovski/BruceTV#step-2-install-bruce-tv-on-the-tv">README</a>. It installs and sets everything up.</span></li>
+      <li><b>Follow the wizard</b><span>Bruce TV opens a short setup wizard on the TV: pick a layout, install Moonlight, find and pair your PC. About a minute.</span></li>
+    </ol>
+  </section>
+
+  <section class="final">
+    <div class="card">
+      <h2>Give your TV a better home</h2>
+      <p class="sub" style="margin-inline:auto">Free and open source. Formerly Luna TV.</p>
+      <a class="btn" href="https://github.com/martintenovski/BruceTV/releases/latest"><i class="fa-solid fa-download" aria-hidden="true"></i>Download Bruce TV</a>
+    </div>
+  </section>
+
+  <footer>Bruce TV · <a href="https://github.com/martintenovski/BruceTV">Source on GitHub</a> · Not affiliated with Google. Google TV is a trademark of Google LLC.</footer>
+</div>
+</body>
+</html>
