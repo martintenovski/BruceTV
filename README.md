@@ -104,7 +104,7 @@ Pick whichever is easier for you.
 3. On the TV, open the file in a file manager (for example *Files by Google* or *X-plore*) and choose **Install**. If it says installs from this app are blocked, allow it for that file manager and go back.
 4. Open **Bruce TV**. The [setup wizard](#step-3-follow-the-setup-wizard-on-the-tv) starts.
 5. Turn on the extras (each takes a few clicks, and Bruce TV opens the right screen when it needs one):
-   - **Home button:** Settings › Accessibility › **Bruce TV Home button** › On. This also enables Sleep and Restart in Control Center.
+   - **Home button:** the setup wizard asks for this and opens the right screen (Settings › Accessibility › **Bruce TV Home button** › On). It also enables Sleep and Restart in Control Center.
    - **Brightness controls:** when Control Center asks, allow Bruce TV to *modify system settings*.
    - **Recent apps:** Settings › Apps › Special app access › **Usage access** › Bruce TV › Allow. (If your TV doesn't list it, use Option B, which sets it for you.)
 
@@ -151,11 +151,12 @@ adb shell settings put secure accessibility_enabled 1
 The first time Bruce TV opens (either option), a **setup wizard** guides you through the rest. It takes about a minute, and you can run it again any time from Control Center › **Setup**.
 
 1. **Pick your home screen**: Classic, Dock, Bento or Bottom bar.
-2. **Game Mode**: choose *Set up Game Mode*, or *Not now* to finish with just the launcher.
-3. **Install Moonlight**: the free streaming app. The wizard opens the Play Store for you.
-4. **Find your gaming PC**: the TV scans your network for the PC you prepared in Step 1. If it can't find it, make sure the PC is on and run `pc\setup.ps1` again, or type the PC's address by hand.
-5. **Pair Moonlight with the PC**: Moonlight shows a PIN; on the PC open `https://localhost:47990` (Apollo's page), go to **PIN** and type it in.
-6. **Your games**: the wizard shows how many games it found.
+2. **Make the Home button open Bruce TV**: the wizard opens Accessibility settings; pick **Bruce TV Home button** and switch it On. (It skips this step if it's already on.)
+3. **Game Mode**: choose *Set up Game Mode*, or *Not now* to finish with just the launcher.
+4. **Install Moonlight**: the free streaming app. The wizard opens the Play Store for you.
+5. **Find your gaming PC**: the TV scans your network for the PC you prepared in Step 1. If it can't find it, make sure the PC is on and run `pc\setup.ps1` again, or type the PC's address by hand.
+6. **Pair Moonlight with the PC**: Moonlight shows a PIN; on the PC open `https://localhost:47990` (Apollo's page), go to **PIN** and type it in.
+7. **Your games**: the wizard shows how many games it found.
 
 Then press the **Game Mode** tile and play.
 
