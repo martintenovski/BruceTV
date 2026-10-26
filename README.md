@@ -73,6 +73,14 @@ Then run the PC setup once:
 1. Download this repo (**Code › Download ZIP**, then extract it) and put the folder somewhere permanent, for example `C:\BruceTV`. **Don't move it afterwards**: the PC helper points at it.
 2. Open the `pc` folder, right-click **`setup.ps1`** › **Run with PowerShell**, and accept the one administrator prompt.
 
+   If the window flashes and closes, or nothing happens: make sure you **extracted** the ZIP first (don't run it from inside the ZIP), then right-click the Start button › **Terminal (Admin)** (or search "PowerShell", right-click › Run as administrator) and run this, with the path to your folder:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File "C:\BruceTV\pc\setup.ps1"
+   ```
+
+   The window now stays open and shows what went wrong, so you can read it.
+
 It finds Python, adds **"Game Mode"** to Apollo's app list, opens the firewall for your home network only (ports 8765 and 8766), and starts a small helper at every logon so the TV can find the PC and read your game list. If Apollo or Python is missing it tells you what to install, then run it again. It is safe to run as many times as you like.
 
 Optional: install **DS4Windows** first if you use a DualShock 4, and the script sets up controller control for it too.
@@ -164,6 +172,7 @@ Start it from the Game Mode tile, the Game button, or the Game Mode app. Press M
 | Problem | Fix |
 |---|---|
 | `adb` can't connect | Wireless debugging must be on, and the port changes after a TV restart. Re-read the IP:port on the TV. If it still refuses, pair again. |
+| `setup.ps1` opens and closes right away | Extract the ZIP first, then run the command from Step 1 in an **administrator** PowerShell window. It stays open and shows the error. Also try right-click `setup.ps1` › Properties › tick **Unblock** › OK, then run it again. |
 | The wizard can't find the PC | PC on and awake? Same network (not a guest Wi-Fi)? Run `pc\setup.ps1` again, then *Scan again*. Or *Type its address*. |
 | Moonlight doesn't list the PC | Add it by IP address inside Moonlight. |
 | Game Mode can't find its app in Moonlight | Open Moonlight once so it refreshes its app list, then try again. |

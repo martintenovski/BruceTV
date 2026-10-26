@@ -8,6 +8,7 @@
 # Afterwards, on the TV: open Bruce TV > Control Center > Setup.
 param([switch]$Relaunched)
 $ErrorActionPreference = "Stop"
+trap { Write-Host "`nSomething went wrong: $_" -ForegroundColor Red; Read-Host "Press Enter to close"; exit 1 }  # keep the window open so the error can be read
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole("Administrators")) {
     Start-Process powershell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -Relaunched"
     exit
@@ -38,7 +39,7 @@ if (-not $py) {
         $py = Find-Python
     }
 }
-if (-not $py) { Warn "Python is missing. Install it from python.org, then run this again."; if ($Relaunched) { Read-Host "Press Enter to close" }; exit 1 }
+if (-not $py) { Warn "Python is missing. Install it from python.org, then run this again."; Read-Host "Press Enter to close"; exit 1 }
 $pyw = Join-Path (Split-Path $py) "pythonw.exe"
 Ok $py
 
@@ -119,4 +120,4 @@ $ip = (Get-NetIPAddress -AddressFamily IPv4 -PrefixOrigin Dhcp, Manual -ErrorAct
 Write-Host "   This PC: $env:COMPUTERNAME  ($ip)"
 Write-Host "   Apollo's web page (for the pairing PIN): https://localhost:47990"
 Write-Host "   On the TV: Bruce TV > Control Center > Setup. It finds this PC by itself."
-if ($Relaunched) { Read-Host "`nPress Enter to close" }
+Read-Host "`nPress Enter to close"
