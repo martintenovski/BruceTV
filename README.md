@@ -153,6 +153,12 @@ Start it from the Game Mode tile, the Game button, or the Game Mode app. Press M
 - **Game folders**: extra folders the scan looks through.
 - **Controllers & button map**: per-controller profiles (DualShock 4 light bar and mapping through DS4Windows).
 
+## Known bugs and planned updates
+
+- **Settings and controls:** merge the settings into one place and make some controls more intuitive to use, for example Brightness and Backlight.
+- **Daily photo:** it might not refresh automatically. To be investigated and fixed.
+- **Exit Bruce TV:** add an exit button or option.
+
 ## Troubleshooting
 
 | Problem | Fix |
