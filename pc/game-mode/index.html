@@ -793,7 +793,7 @@ addEventListener("keydown", e => {
   const k = KEYS[e.key]; if (k) { e.preventDefault(); input(k); }
 });
 
-// TV remote keys forwarded by Luna TV (Apollo drops the remote's own controller input). The TV only forwards
+// TV remote keys forwarded by Bruce TV (Apollo drops the remote's own controller input). The TV only forwards
 // while this page reports focus, so a game in front gets the remote back.
 new EventSource("/api/events").onmessage = e => input(e.data);
 const reportFocus = () => post("/api/focus", {focused: document.hasFocus() && !document.hidden});

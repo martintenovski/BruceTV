@@ -41,7 +41,7 @@ BROWSERS = [r"C:\Program Files\Google\Chrome\Application\chrome.exe",
             r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"]
 NO_WINDOW = 0x08000000
 browser = None
-# Remote keys forwarded by Luna TV on the TV: Apollo never allocates a virtual pad for the TV remote, so
+# Remote keys forwarded by Bruce TV on the TV: Apollo never allocates a virtual pad for the TV remote, so
 # Moonlight's copy of those presses is dropped. The page listens on /api/events and reports focus back.
 REMOTE_KEYS = {"up", "down", "left", "right", "ok", "back", "menu"}
 keys = []

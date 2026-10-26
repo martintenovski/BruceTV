@@ -790,7 +790,7 @@ public class MainActivity extends Activity {
         dialog().setTitle("Restart the TV?").setMessage("Everything will close and the TV will start again.")
                 .setPositiveButton("Restart", (d, w) -> {
                     if (KeyService.powerMenu()) toast("Choose Restart");
-                    else { toast("Turn on \"Luna TV Home button\" in Accessibility to use Restart"); start(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
+                    else { toast("Turn on \"Bruce TV Home button\" in Accessibility to use Restart"); start(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
                 }).setNegativeButton("Cancel", null).show();
     }
 
@@ -934,7 +934,7 @@ public class MainActivity extends Activity {
                     if (fresh && (manual || !r.version.equals(prefs.getString("updSeen", "")))) {
                         prefs.edit().putString("updSeen", r.version).apply();
                         showUpdate(r);
-                    } else if (manual) toast("Luna TV is up to date (v" + version() + ")");
+                    } else if (manual) toast("Bruce TV is up to date (v" + version() + ")");
                 });
             } catch (Exception e) {
                 if (manual) ui.post(() -> toast("Couldn't check for updates"));
@@ -967,7 +967,7 @@ public class MainActivity extends Activity {
 
     void installUpdate(Updater.Release r) {
         if (!getPackageManager().canRequestPackageInstalls()) { // build.ps1 grants this over adb; otherwise ask once
-            toast("Allow Luna TV to install apps, then try again");
+            toast("Allow Bruce TV to install apps, then try again");
             start(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName())));
             return;
         }
@@ -998,7 +998,7 @@ public class MainActivity extends Activity {
     /** Real TV backlight (needs "modify system settings", which build.ps1 grants over adb). Never goes fully dark. */
     void stepBrightness(int dir, View tile) {
         if (!Settings.System.canWrite(this)) {
-            toast("Allow Luna TV to modify system settings");
+            toast("Allow Bruce TV to modify system settings");
             start(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + getPackageName())));
             return;
         }
@@ -1043,7 +1043,7 @@ public class MainActivity extends Activity {
     void sleep() {
         closeOverlays();
         if (KeyService.sleep()) return;
-        toast("Turn on \"Luna TV Home button\" in Accessibility to use Sleep");
+        toast("Turn on \"Bruce TV Home button\" in Accessibility to use Sleep");
         start(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
     }
 
@@ -1705,7 +1705,7 @@ public class MainActivity extends Activity {
         HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
         c.setConnectTimeout(8000);
         c.setReadTimeout(15000);
-        c.setRequestProperty("User-Agent", "LunaTV/2.0");
+        c.setRequestProperty("User-Agent", "BruceTV/2.0");
         try (InputStream in = c.getInputStream()) { return readAll(in); }
         finally { c.disconnect(); }
     }

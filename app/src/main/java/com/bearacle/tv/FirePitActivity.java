@@ -11,7 +11,7 @@ import android.widget.VideoView;
 
 import java.io.File;
 
-/** Standby screen: loops the fire-pit video copied to the app's files folder. Any button brings Luna TV back. */
+/** Standby screen: loops the fire-pit video copied to the app's files folder. Any button brings Bruce TV back. */
 public class FirePitActivity extends Activity {
 
     static final String FILE = "fire-pit.mp4";

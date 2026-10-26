@@ -14,7 +14,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 /**
- * Sends the remote's Home button to Luna TV (Google TV otherwise forces its own home), lets Control Center sleep
+ * Sends the remote's Home button to Bruce TV (Google TV otherwise forces its own home), lets Control Center sleep
  * the TV, and holds the Game Mode loading screen over Moonlight until the stream is actually running.
  */
 public class KeyService extends AccessibilityService {
@@ -161,11 +161,11 @@ public class KeyService extends AccessibilityService {
         } else if (cls.startsWith("com.limelight.")) {
             moonlightCls = cls;
             if (cls.equals("com.limelight.Game")) {
-                // Any stream counts, however it was started (Luna's Game Mode button or Moonlight itself).
+                // Any stream counts, however it was started (Bruce's Game Mode button or Moonlight itself).
                 sawGame = true;
                 startPolling();
             } else if (sawGame && (cls.equals("com.limelight.AppView") || cls.equals("com.limelight.PcView"))) {
-                // The stream ended and Moonlight fell back to its own app list: go home to Luna TV instead.
+                // The stream ended and Moonlight fell back to its own app list: go home to Bruce TV instead.
                 sawGame = false;
                 startActivity(new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             }
@@ -180,7 +180,7 @@ public class KeyService extends AccessibilityService {
 
     boolean showCover(String title) { return showCover(title, false); }
 
-    /** exit: the closing screen, shown from the start of the intro until Luna TV's home is back. */
+    /** exit: the closing screen, shown from the start of the intro until Bruce TV's home is back. */
     boolean showCover(String title, boolean exit) {
         if (cover != null) return true;
         try {

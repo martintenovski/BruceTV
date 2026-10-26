@@ -6,7 +6,7 @@
 param([Parameter(Mandatory)][string]$Version, [string]$Notes = "", [string]$NotesFile = "")
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
-$repo = "martintenovski/luna-tv"   # the source repo itself; keep in sync with Updater.REPO
+$repo = "martintenovski/BruceTV"   # the source repo itself; keep in sync with Updater.REPO
 if ($NotesFile) { $Notes = Get-Content $NotesFile -Raw }
 if (-not $Notes.Trim()) { throw "Give the release some notes (-Notes or -NotesFile): the TV shows them before updating." }
 
@@ -19,8 +19,8 @@ Set-Content app\build.gradle $g -NoNewline
 
 & "$PSScriptRoot\build.ps1" -NoInstall
 if ($LASTEXITCODE -ne 0) { exit 1 }
-$apk = "$PSScriptRoot\app\build\outputs\apk\release\luna-tv-$Version.apk"
+$apk = "$PSScriptRoot\app\build\outputs\apk\release\bruce-tv-$Version.apk"
 Copy-Item app\build\outputs\apk\release\app-release.apk $apk -Force
-gh release create "v$Version" $apk --repo $repo --title "Luna TV $Version" --notes $Notes
+gh release create "v$Version" $apk --repo $repo --title "Bruce TV $Version" --notes $Notes
 if ($LASTEXITCODE -ne 0) { throw "gh release create failed" }
 "RELEASED v$Version (versionCode $code). Commit app/build.gradle."

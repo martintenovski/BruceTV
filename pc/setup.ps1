@@ -1,11 +1,11 @@
-# One-time setup of the gaming PC for Luna TV's Game Mode. Safe to run again any time.
+# One-time setup of the gaming PC for Bruce TV's Game Mode. Safe to run again any time.
 # Asks once for administrator rights, then:
 #   - finds Python (offers to install it), and checks for Apollo (the streaming host)
 #   - adds "Game Mode" to Apollo's app list
 #   - lets the TV through the firewall (ports 8765 and 8766, home network only)
 #   - starts the always-on helper at every logon (the TV finds this PC through it, and reads your game list)
 #   - sets up DS4Windows control if DS4Windows is installed
-# Afterwards, on the TV: open Luna TV > Control Center > Setup.
+# Afterwards, on the TV: open Bruce TV > Control Center > Setup.
 param([switch]$Relaunched)
 $ErrorActionPreference = "Stop"
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole("Administrators")) {
@@ -78,7 +78,7 @@ if (Test-Path $cfg) {
 
 # ---------- firewall ----------
 Step "Firewall (home network only)"
-foreach ($rule in @(@{N = "Luna TV Game Mode"; P = 8765}, @{N = "Luna TV Helper"; P = 8766})) {
+foreach ($rule in @(@{N = "Bruce TV Game Mode"; P = 8765}, @{N = "Bruce TV Helper"; P = 8766})) {
     if (-not (Get-NetFirewallRule -DisplayName $rule.N -ErrorAction SilentlyContinue)) {
         New-NetFirewallRule -DisplayName $rule.N -Direction Inbound -Protocol TCP -LocalPort $rule.P -RemoteAddress LocalSubnet -Action Allow | Out-Null
     }
@@ -118,5 +118,5 @@ Step "Done"
 $ip = (Get-NetIPAddress -AddressFamily IPv4 -PrefixOrigin Dhcp, Manual -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -notmatch "^169\." } | Select-Object -First 1).IPAddress
 Write-Host "   This PC: $env:COMPUTERNAME  ($ip)"
 Write-Host "   Apollo's web page (for the pairing PIN): https://localhost:47990"
-Write-Host "   On the TV: Luna TV > Control Center > Setup. It finds this PC by itself."
+Write-Host "   On the TV: Bruce TV > Control Center > Setup. It finds this PC by itself."
 if ($Relaunched) { Read-Host "`nPress Enter to close" }

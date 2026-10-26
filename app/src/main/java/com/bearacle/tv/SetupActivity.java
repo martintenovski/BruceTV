@@ -121,7 +121,7 @@ public class SetupActivity extends Activity {
 
     void welcome() {
         box.setGravity(Gravity.CENTER);
-        head("Welcome to Luna TV", "Let's set up your TV. It takes about a minute, and you can run it again any time from Control Center › Setup.");
+        head("Welcome to Bruce TV", "Let's set up your TV. It takes about a minute, and you can run it again any time from Control Center › Setup.");
         row(button("Start", () -> next(LAYOUT)), button("Skip for now", () -> finishSetup()));
     }
 
@@ -159,7 +159,7 @@ public class SetupActivity extends Activity {
     void game() {
         box.setGravity(Gravity.CENTER);
         head("Play your PC games on this TV", "Game Mode streams games from your gaming PC with Moonlight, so a console-style menu opens on the TV.\n\n"
-                + "The PC needs Apollo (the streaming host) and Luna TV's PC setup, which finds your games. Run pc\\setup.ps1 on the PC first if you haven't.");
+                + "The PC needs Apollo (the streaming host) and Bruce TV's PC setup, which finds your games. Run pc\\setup.ps1 on the PC first if you haven't.");
         row(button("Set up Game Mode", () -> next(MOONLIGHT)), button(gameOnly ? "Not now" : "Not now, finish", () -> finishSetup()));
     }
 
@@ -341,7 +341,7 @@ public class SetupActivity extends Activity {
         return null;
     }
 
-    /** The PC's name if Luna TV's helper answers at this address, else null. */
+    /** The PC's name if Bruce TV's helper answers at this address, else null. */
     static String hello(String ip) {
         try {
             JSONObject j = new JSONObject(get("http://" + ip + ":8766/api/hello", 400));

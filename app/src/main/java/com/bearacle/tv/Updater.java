@@ -20,7 +20,7 @@ import java.net.URL;
 
 /** Self-update from the latest GitHub release of the public releases repo (tag "v2.1", one .apk asset, notes in the body). */
 final class Updater {
-    static final String REPO = "martintenovski/luna-tv";
+    static final String REPO = "martintenovski/BruceTV";
     static final String ACTION = "com.bearacle.tv.INSTALL_STATUS";
 
     static class Release { String version, notes, apkUrl; long size; }

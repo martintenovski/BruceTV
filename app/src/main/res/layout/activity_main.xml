@@ -188,7 +188,7 @@
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:fontFamily="sans-serif-medium"
-            android:text="Luna TV"
+            android:text="Bruce TV"
             android:textSize="20sp" />
 
         <LinearLayout
