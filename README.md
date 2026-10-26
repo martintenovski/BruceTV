@@ -68,7 +68,14 @@ What you need on the PC:
 - **Python 3.10 or newer**. If you don't have it, the setup script offers to install it for you.
 - Your games in a launcher: Steam, Epic, Microsoft Store, GOG or Ubisoft. Any other game can be added by hand later.
 
-Then run the PC setup once:
+Then set the PC up. **Easiest:** download **`BruceTV-PC-Setup-<version>.exe`** from the [latest release](https://github.com/martintenovski/BruceTV/releases/latest) and run it.
+
+- Windows may say *"Windows protected your PC"* because the installer isn't code-signed: click **More info › Run anyway**.
+- Click through the wizard and leave **"Set up Game Mode on this PC now"** ticked. It installs Bruce TV's PC files to `C:\ProgramData\BruceTV` (so they stay put), then runs the setup below.
+- To run the setup again later, use **Bruce TV PC setup** in the Start menu.
+
+<details>
+<summary>No installer? Set it up by hand from the ZIP instead</summary>
 
 1. Download this repo (**Code › Download ZIP**, then extract it) and put the folder somewhere permanent, for example `C:\BruceTV`. **Don't move it afterwards**: the PC helper points at it.
 2. Open the `pc` folder, right-click **`setup.ps1`** › **Run with PowerShell**, and accept the one administrator prompt.
@@ -80,8 +87,9 @@ Then run the PC setup once:
    ```
 
    The window now stays open and shows what went wrong, so you can read it.
+</details>
 
-It finds Python, adds **"Game Mode"** to Apollo's app list, opens the firewall for your home network only (ports 8765 and 8766), and starts a small helper at every logon so the TV can find the PC and read your game list. If Apollo or Python is missing it tells you what to install, then run it again. It is safe to run as many times as you like.
+Either way, the setup finds Python, adds **"Game Mode"** to Apollo's app list, opens the firewall for your home network only (ports 8765 and 8766), and starts a small helper at every logon so the TV can find the PC and read your game list. If Apollo or Python is missing it tells you what to install, then run it again. It is safe to run as many times as you like. The installer's uninstaller removes the helper, its scheduled tasks and the firewall rules.
 
 Optional: install **DS4Windows** first if you use a DualShock 4, and the script sets up controller control for it too.
 
@@ -205,6 +213,7 @@ It bumps the version in `app/build.gradle`, builds, and creates the GitHub relea
 |---|---|
 | `app/` | The launcher (plain Java, no libraries) |
 | `pc/` | Game Mode for the gaming PC (`setup.ps1` sets it up) |
+| `installer/` | Source for the Windows installer (`BruceTV-PC-Setup`) |
 | `install-tv.ps1` | One-command installer for the TV |
 | `docs/` | The website (GitHub Pages) and its images |
 | `release-notes/` | The "What's new" text shown on the TV |
