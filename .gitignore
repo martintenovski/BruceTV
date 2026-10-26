@@ -12,3 +12,4 @@ __pycache__/
 pc/game-mode/profile.json
 pc/game-mode/custom-games.json
 local.properties
+installer/Output/
