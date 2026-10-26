@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/apple-touch-icon.png" alt="Bruce TV logo" width="96">
+
 # Bruce TV
 
 **A fast, good-looking home screen for Google TV, with a console-style Game Mode that streams your gaming PC.**
