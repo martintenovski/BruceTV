@@ -36,6 +36,8 @@ CUSTOM = os.path.join(HERE, "custom-games.json")   # [{"name", "path"}]: games a
 LAUNCHES = os.path.join(HERE, "launches.json")   # game id -> when Game Mode last launched it
 HIDDEN_FILE = os.path.join(HERE, "hidden.json")   # game ids kept out of the menu (Tyr until the user brings it back)
 FOLDERS_FILE = os.path.join(HERE, "game-folders.json")   # extra folders the game scan looks through
+PLAYNITE_FILE = os.path.join(HERE, "playnite.json")   # {"dir": ...}: where the user says Playnite is (empty: look for it)
+LAUNCHER_FILE = os.path.join(HERE, "launcher.json")   # {"mode": "playnite"}: what the TV wants Game Mode to open (set through last-game.py)
 APOLLO_CONF = r"C:\Program Files\Apollo\config\sunshine.conf"
 BROWSERS = [r"C:\Program Files\Google\Chrome\Application\chrome.exe",
             r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"]
@@ -261,6 +263,10 @@ def set_hidden(gid, hide):
 
 def folders():
     return load_json(FOLDERS_FILE, [])
+
+
+def playnite_saved():
+    return load_json(PLAYNITE_FILE, {}).get("dir", "")
 
 
 def pc_name():
@@ -580,6 +586,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.json({"games": manage_list()})
         elif path == "/api/folders":
             self.json({"folders": folders()})
+        elif path == "/api/playnite":
+            self.json({"saved": playnite_saved(), "found": gm.playnite_dir(playnite_saved())})
         elif path == "/api/job":
             self.json(job)
         elif path == "/api/fs":
@@ -683,6 +691,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 fl.append(p)
             save_json(FOLDERS_FILE, fl)
             return self.json({"folders": fl})
+        elif parts == ["api", "playnite"]:
+            p = str(self.body().get("path", "")).strip()
+            save_json(PLAYNITE_FILE, {"dir": os.path.normpath(p) if p else ""})
+            load_library(full=False)
+            return self.json({"saved": playnite_saved(), "found": gm.playnite_dir(playnite_saved())})
         elif parts == ["api", "bigpicture"]:
             in_game, left_menu = True, False
             threading.Thread(target=front_new_windows, daemon=True).start()
@@ -714,6 +727,11 @@ def main():
         server = None  # already running: just open another window onto it
     if server:
         threading.Thread(target=server.serve_forever, daemon=True).start()
+    if load_json(LAUNCHER_FILE, {}).get("mode") == "playnite":
+        exe = gm.playnite_exe(gm.playnite_dir(playnite_saved()))
+        if exe:  # the TV picked Playnite as the Game Mode launcher: open it instead of our menu, and stay up while it runs (the stream ends when it closes)
+            subprocess.Popen([exe], cwd=os.path.dirname(exe)).wait()
+            return
     if "--no-browser" in sys.argv:
         print(f"Serving on http://127.0.0.1:{PORT}/")
         threading.Event().wait()

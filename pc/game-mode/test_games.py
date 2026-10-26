@@ -29,6 +29,13 @@ with tempfile.TemporaryDirectory() as root:
     d = games.list_dir(root)
     assert d["dirs"] == ["Hades", "Jackbox", "Tiny Game", "Tools"] and d["files"] == [], d
 
+with tempfile.TemporaryDirectory() as pn:
+    touch(os.path.join(pn, "Playnite.DesktopApp.exe"), 10)
+    assert os.path.basename(games.playnite_exe(pn)) == "Playnite.DesktopApp.exe"
+    touch(os.path.join(pn, "Playnite.FullscreenApp.exe"), 10)
+    assert games.playnite_dir(pn) == pn and os.path.basename(games.playnite_exe(pn)) == "Playnite.FullscreenApp.exe"
+    assert games.playnite_dir(os.path.join(pn, "Playnite.FullscreenApp.exe")) == pn  # picking the exe itself works too
+
 assert games.clean("The.Jackbox.Party.Pack.3") == "The Jackbox Party Pack 3"
 assert games.clean("Half-Life 2.5") == "Half-Life 2.5"
 print("ok", len(games.drives()), "drives,", len(games.gog_games()), "GOG,", len(games.ubisoft_games()), "Ubisoft,", games.steam_root())

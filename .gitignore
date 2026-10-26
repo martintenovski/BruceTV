@@ -13,3 +13,5 @@ pc/game-mode/profile.json
 pc/game-mode/custom-games.json
 local.properties
 installer/Output/
+pc/game-mode/playnite.json
+pc/game-mode/launcher.json

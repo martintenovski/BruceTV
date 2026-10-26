@@ -340,7 +340,7 @@ function render() {
 }
 
 // ---------- game page ----------
-const SRCNAME = {steam: "Steam", epic: "Epic Games", xbox: "Microsoft Store", gog: "GOG", ubisoft: "Ubisoft Connect", custom: "Added by hand"};
+const SRCNAME = {steam: "Steam", epic: "Epic Games", xbox: "Microsoft Store", gog: "GOG", ubisoft: "Ubisoft Connect", playnite: "Playnite", custom: "Added by hand"};
 function lastAgo(ts) {
   if (!ts) return "Never";
   const d = Math.floor((Date.now() / 1000 - ts) / 86400);
@@ -418,7 +418,7 @@ const mainMenu = () => ({title: "Game Mode", items: [
 ]});
 
 // ---------- settings: finding games, adding one by hand, hiding, scan folders ----------
-const SRC = {steam: "Steam", epic: "Epic Games", xbox: "Microsoft Store", gog: "GOG", ubisoft: "Ubisoft Connect", custom: "Added by hand"};
+const SRC = {steam: "Steam", epic: "Epic Games", xbox: "Microsoft Store", gog: "GOG", ubisoft: "Ubisoft Connect", playnite: "Playnite", custom: "Added by hand"};
 const baseName = p => p.replace(/[\\/]+$/, "").split(/[\\/]/).pop();
 const joinPath = (a, b) => a.replace(/[\\/]+$/, "") + "\\" + b;
 const stem = n => n.replace(/\.[^.]*$/, "");
@@ -428,10 +428,22 @@ function openSettings(status) {
     {label: "Add a game", sub: "Pick its folder or program if it wasn't found", act: () => openAddGame()},
     {label: "Manage games", sub: "Hide a game or remove one you added", act: () => openManage()},
     {label: "Game folders", sub: "Folders the scan looks through", act: openFolders},
+    {label: "Playnite", sub: "Open your Playnite library from Game Mode", act: openPlaynite},
     {label: "Controllers & button map", act: openPads, sep: true},
     {label: "DS4Windows settings", act: openDs4},
     {label: "Edit profile", act: openEdit},
   ]});
+}
+// Playnite: found by itself (installer entry, usual folders, a Playnite folder on each disk), or pointed at by hand
+function openPlaynite(status) {
+  loading("Playnite", "/api/playnite", d => {
+    const set = path => fetch("/api/playnite", {method: "POST", body: JSON.stringify({path})}).then(() => reloadGames()).then(() => { sfx.ok(); openPlaynite(); });
+    openMenu({title: "Playnite", wide: true, back: () => openSettings(),
+      status: status || (d.found ? "Found in " + d.found + (d.saved ? "\nYou picked this folder" : "\nFound automatically") : "Playnite wasn't found. Pick the folder it is installed in."),
+      items: [
+        {label: "Choose the Playnite folder", sub: "The folder with Playnite.FullscreenApp.exe", act: () => browse("", "playnite", openPlaynite)},
+        {label: "Find it automatically", sub: "Forget the folder you picked", act: () => set("")}]});
+  }, () => openSettings());
 }
 function reloadGames() {
   return fetch("/api/games").then(r => r.json()).then(d => {
@@ -508,18 +520,21 @@ function browse(path, mode, back, focusName) {
       items.push({head: true, label: "Disks"});
       d.drives.forEach(x => items.push({label: "💽  " + x.name, sub: `${(x.free / 1e9).toFixed(0)} GB free`, act: () => browse(x.path, mode, back)}));
     } else {
-      items.push({label: mode === "game" ? "✔  Use this folder" : "✔  Add this folder", act: () => useFolder(path, mode, () => browse(path, mode, back))});
+      items.push({label: mode === "folder" ? "✔  Add this folder" : "✔  Use this folder", act: () => useFolder(path, mode, () => browse(path, mode, back))});
       d.dirs.forEach(n => items.push({label: "📁  " + n, act: () => browse(joinPath(path, n), mode, back)}));
       if (mode === "game") d.files.forEach(n => items.push({label: "🎮  " + n, act: () => nameGame(joinPath(path, n), stem(n).replace(/[._]+/g, " "), () => browse(path, mode, back))}));
       if (items.length === 1) items.push({head: true, label: "Nothing in this folder"});
     }
     const at = focusName ? items.findIndex(it => it.label.endsWith("  " + focusName)) : 0;
     openMenu({title: d.drives ? "This PC" : path, wide: true, arrows: true, items,
-      status: mode === "game" ? "Open a folder, then choose “Use this folder” (or pick the .exe)" : "Open the folder to scan, then choose “Add this folder”",
+      status: mode === "playnite" ? "Open the folder Playnite is installed in, then choose “Use this folder”" : mode === "game" ? "Open a folder, then choose “Use this folder” (or pick the .exe)" : "Open the folder to scan, then choose “Add this folder”",
       back: () => d.drives ? back() : browse(d.parent, mode, back, baseName(path))}, Math.max(0, at));
   }, back);
 }
 function useFolder(path, mode, back) {
+  if (mode === "playnite") {
+    return fetch("/api/playnite", {method: "POST", body: JSON.stringify({path})}).then(() => reloadGames()).then(() => { sfx.ok(); openPlaynite(); });
+  }
   if (mode === "folder") {
     return fetch("/api/folders/add", {method: "POST", body: JSON.stringify({path})}).then(() => { sfx.ok(); openFolders(); });
   }

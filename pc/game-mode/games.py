@@ -260,3 +260,44 @@ def ubisoft_games():
             out.append({"id": "u-" + sub, "name": clean(folder_name(d)), "last": int(os.path.getmtime(d)), "size": 0,
                         "launch": f"uplay://launch/{sub}/0", "src": "ubisoft"})
     return out
+
+
+# ---------- Playnite (Game Mode can open its fullscreen mode instead of our menu, see server.main) ----------
+
+PLAYNITE_EXES = ("Playnite.FullscreenApp.exe", "Playnite.DesktopApp.exe")
+
+
+def playnite_exe(folder):
+    """The program that starts Playnite inside a folder (or the program itself), fullscreen mode preferred; None if it isn't there."""
+    if folder and os.path.isfile(folder) and os.path.basename(folder) in PLAYNITE_EXES:
+        return folder
+    for n in PLAYNITE_EXES:
+        if folder and os.path.isfile(os.path.join(folder, n)):
+            return os.path.join(folder, n)
+    return None
+
+
+def playnite_folders():
+    """Where Playnite usually lives: its installer's registry entry, the usual install folders, a Playnite folder on each drive."""
+    out = []
+    if winreg:
+        for root, view in ((winreg.HKEY_CURRENT_USER, 0), (winreg.HKEY_LOCAL_MACHINE, 0), (winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY)):
+            base = r"Software\Microsoft\Windows\CurrentVersion\Uninstall"
+            for sub in reg_subkeys(root, base, view):
+                v = reg_values(root, base + "\\" + sub, view) or {}
+                if str(v.get("DisplayName", "")).lower().startswith("playnite"):
+                    out.append(str(v.get("InstallLocation", "")).strip('"'))
+    for var in ("LOCALAPPDATA", "ProgramFiles", "ProgramFiles(x86)"):
+        out.append(os.path.join(os.environ.get(var, "\0"), "Playnite"))
+    for d in drives():
+        out += [os.path.join(d["path"], n, "Playnite") for n in ("", "Games", "Apps")]
+    return out
+
+
+def playnite_dir(saved=""):
+    """The folder Playnite starts from: the one the user picked if it works, else the first one found. "" if none."""
+    for f in [saved] + playnite_folders():
+        exe = playnite_exe(f)
+        if exe:
+            return os.path.dirname(exe)
+    return ""

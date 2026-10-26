@@ -52,6 +52,7 @@ import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -117,12 +118,11 @@ public class MainActivity extends Activity {
             {"bento", "Bento", "Big tiles, Game Mode as the hero"},
             {"bottom", "Bottom bar", "Labelled icon bar along the bottom"}};
     String layout = "classic";
-    // Button/nav look (pref "skin", theme overlays in themes.xml) and app icon size (pref "iconSize", index into SIZES).
+    // Button/nav look (pref "skin", theme overlays in themes.xml) and app icon size (pref "iconPct", 75..150).
     static final String[][] SKINS = {
             {"default", "Default"}, {"glass", "Glassy"}, {"frosted", "Frosted glass"}};
     static final int[] SKIN_STYLE = {0, R.style.SkinGlass, R.style.SkinFrosted};
-    static final String[] SIZE_NAMES = {"Smallest", "Small", "Default", "Large", "Larger", "Largest"};
-    static final float[] SIZES = {0.75f, 0.88f, 1f, 1.15f, 1.3f, 1.5f};
+    static final int[] OLD_SIZES = {75, 88, 100, 115, 130, 150}; // the steps of the old Icon size button, kept so a chosen size survives
     List<String[]> contRows = new ArrayList<>();
     String weatherText = "";
 
@@ -265,7 +265,7 @@ public class MainActivity extends Activity {
         // HorizontalScrollView moves focus itself, so the system's focus "pop" never plays on the home rows; play it here.
         home.getViewTreeObserver().addOnGlobalFocusChangeListener((old, now) -> {
             if (dockLabel != null && now != null) // Dock layout: name of the focused app or tool above the dock
-                dockLabel.setText(now.getParent() == favRow || now.getParent() == favScroll().getParent() ? now.getContentDescription() : "");
+                dockLabel.setText((now.getParent() == favRow && showNames()) || now.getParent() == favScroll().getParent() ? now.getContentDescription() : "");
             if (old == null || now == null || old.getParent() != now.getParent()) return;
             if (now.getParent() != favRow && now.getParent() != continueRow) return;
             ViewGroup row = (ViewGroup) now.getParent();
@@ -383,7 +383,7 @@ public class MainActivity extends Activity {
             int[] sz = favTile();
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(px(sz[0]), px(sz[1]));
             lp.setMarginEnd(px(sz[2]));
-            View t = tile(a, iconScale());
+            View t = tile(a, iconScale(), true);
             if (p.equals(moving)) t.setForeground(movingRing());
             favRow.addView(t, lp);
         }
@@ -438,13 +438,23 @@ public class MainActivity extends Activity {
 
     View tile(App a) { return tile(a, 1f); }
 
-    View tile(App a, float s) {
+    View tile(App a, float s) { return tile(a, s, false); }
+
+    /** home = a tile of the Home row: its name shows only while it is focused, and only if "Show app name" is on (Icons). */
+    View tile(App a, float s, boolean home) {
         FrameLayout f = baseTile(a.label);
+        TextView name = null;
         if (a.banner) {
             ImageView iv = new ImageView(this);
             iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
             iv.setImageDrawable(copy(a.art));
             f.addView(iv, new FrameLayout.LayoutParams(-1, -1));
+            if (home && showNames()) { // banners carry no name of their own: lay it over the bottom edge
+                name = label(a.label, Math.round(10 * s));
+                name.setBackgroundResource(R.drawable.scrim_bottom);
+                name.setGravity(Gravity.CENTER);
+                f.addView(name, new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM));
+            }
         } else {
             LinearLayout col = new LinearLayout(this);
             col.setOrientation(LinearLayout.VERTICAL);
@@ -452,8 +462,16 @@ public class MainActivity extends Activity {
             ImageView iv = new ImageView(this);
             iv.setImageDrawable(copy(a.art));
             col.addView(iv, new LinearLayout.LayoutParams(px(Math.round(30 * s)), px(Math.round(30 * s))));
-            col.addView(label(a.label, Math.round(10 * s)), new LinearLayout.LayoutParams(-2, -2));
+            if (!home || showNames()) {
+                name = label(a.label, Math.round(10 * s));
+                col.addView(name, new LinearLayout.LayoutParams(-2, -2));
+            }
             f.addView(col, new FrameLayout.LayoutParams(-1, -1));
+        }
+        if (home && name != null) {
+            TextView n = name;
+            n.setVisibility(View.INVISIBLE);
+            f.setOnFocusChangeListener((v, has) -> { zoom(v, has, 1.12f); n.setVisibility(has ? View.VISIBLE : View.INVISIBLE); });
         }
         f.setOnClickListener(v -> launch(a.pkg));
         f.setOnLongClickListener(v -> { appMenu(a); return true; });
@@ -836,12 +854,10 @@ public class MainActivity extends Activity {
             ((TextView) ((ViewGroup) ((ViewGroup) v).getChildAt(1)).getChildAt(1)).setText(darkLabel());
         });
         ccTile(R.drawable.ic_fire, "Fire pit", "Cozy standby", v -> fireplace());
-        ccTile(R.drawable.ic_brightness, "Brighter", brightLabel(), v -> stepBrightness(1, v));
-        ccTile(R.drawable.ic_brightness, "Dimmer", brightLabel(), v -> stepBrightness(-1, v));
-        ccTile(R.drawable.ic_image, "Color", pictureLabel("pColor", COLOR_STEPS), v -> stepPicture("pColor", COLOR_STEPS, v));
-        ccTile(R.drawable.ic_image, "Contrast", pictureLabel("pContrast", CONTRAST_STEPS), v -> stepPicture("pContrast", CONTRAST_STEPS, v));
+        ccTile(R.drawable.ic_brightness, "Display", "Backlight, color, contrast", v -> showDisplay());
         ccTile(R.drawable.ic_tv, "Screensaver", "Start now", v -> screensaver());
         ccTile(R.drawable.ic_game, "Game Mode", "Stream your PC", v -> startGame());
+        ccTile(R.drawable.ic_game, "Game Mode app", gameLabel(), v -> gameMenu());
         ccTile(R.drawable.ic_tv, "Setup", "Run the setup again", v -> start(new Intent(this, SetupActivity.class)));
         ccTile(R.drawable.ic_image, "Wallpaper", "Change", v -> showWallpapers());
         ccTile(R.drawable.ic_home, "Home layout", layoutName(layout), v -> pickLayout());
@@ -850,13 +866,7 @@ public class MainActivity extends Activity {
             toast("Button style: " + SKINS[skinIndex()][1]);
             recreate(); // the style is a theme, so it needs a fresh inflate
         });
-        ccTile(R.drawable.ic_apps, "Icon size", SIZE_NAMES[sizeIndex()], v -> {
-            prefs.edit().putInt("iconSize", (sizeIndex() + 1) % SIZES.length).apply();
-            ((TextView) ((ViewGroup) ((ViewGroup) v).getChildAt(1)).getChildAt(1)).setText(SIZE_NAMES[sizeIndex()]);
-            renderFavs(-1);
-            renderGrid(openFolder);
-            liftDockLabel();
-        });
+        ccTile(R.drawable.ic_apps, "Icons", iconsLabel(), v -> showIconSize());
         ccTile(R.drawable.ic_sound, "Sound", "Audio settings", v -> start(new Intent(Settings.ACTION_SOUND_SETTINGS)));
         ccTile(R.drawable.ic_settings, "Settings", "All settings", v -> openSettings());
         ccTile(R.drawable.ic_home, "Updates", updateLabel(), v -> {
@@ -993,44 +1003,17 @@ public class MainActivity extends Activity {
 
     int brightness() { return Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 128); }
 
-    String brightLabel() { return "Backlight " + Math.round(brightness() * 100 / 255f) + "%"; }
-
-    /** Real TV backlight (needs "modify system settings", which build.ps1 grants over adb). Never goes fully dark. */
-    void stepBrightness(int dir, View tile) {
-        if (!Settings.System.canWrite(this)) {
-            toast("Allow Bruce TV to modify system settings");
-            start(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + getPackageName())));
-            return;
-        }
-        int b = Math.max(15, Math.min(255, brightness() + dir * 26));
-        Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
-        Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, b);
-        for (int i = 0; i < ccGrid.getChildCount(); i++) { // both brightness tiles show the level
-            ViewGroup col = (ViewGroup) ((ViewGroup) ccGrid.getChildAt(i)).getChildAt(1);
-            String title = ((TextView) col.getChildAt(0)).getText().toString();
-            if (title.equals("Brighter") || title.equals("Dimmer")) ((TextView) col.getChildAt(1)).setText(brightLabel());
-        }
-    }
-
     // The TV's own Picture menu (backlight, contrast...) is stored behind a signature permission and is applied to
-    // video, not to the app layer, so the launcher can't follow it. These two are the launcher's own picture controls.
-    static final float[] COLOR_STEPS = {0.9f, 1f, 1.15f, 1.3f, 1.45f};
-    static final float[] CONTRAST_STEPS = {0.95f, 1f, 1.1f, 1.2f, 1.3f};
+    // video, not to the app layer, so the launcher can't follow it. Color and contrast are the launcher's own picture controls.
+    // Defaults sit a notch above neutral: the glass UI looks flat otherwise.
+    int colorPct() { return prefs.getInt("pColorP", 115); }
 
-    int pictureIndex(String key) { return prefs.getInt(key, 2); } // default one notch above neutral: the glass UI looks flat otherwise
-
-    String pictureLabel(String key, float[] steps) { return Math.round(steps[pictureIndex(key)] * 100) + "%"; }
-
-    void stepPicture(String key, float[] steps, View tile) {
-        prefs.edit().putInt(key, (pictureIndex(key) + 1) % steps.length).apply();
-        ((TextView) ((ViewGroup) ((ViewGroup) tile).getChildAt(1)).getChildAt(1)).setText(pictureLabel(key, steps));
-        applyPicture();
-    }
+    int contrastPct() { return prefs.getInt("pContrastP", 110); }
 
     /** Colour and contrast over the whole launcher window (Android 12+). */
     void applyPicture() {
         if (Build.VERSION.SDK_INT < 31) return;
-        float sat = COLOR_STEPS[pictureIndex("pColor")], c = CONTRAST_STEPS[pictureIndex("pContrast")];
+        float sat = colorPct() / 100f, c = contrastPct() / 100f;
         View root = findViewById(android.R.id.content);
         if (sat == 1f && c == 1f) { root.setRenderEffect(null); return; }
         ColorMatrix m = new ColorMatrix();
@@ -1038,6 +1021,104 @@ public class MainActivity extends Activity {
         float t = 127.5f * (1 - c); // contrast pivots on mid grey
         m.postConcat(new ColorMatrix(new float[]{c, 0, 0, 0, t, 0, c, 0, 0, t, 0, 0, c, 0, t, 0, 0, 0, 1, 0}));
         root.setRenderEffect(RenderEffect.createColorFilterEffect(new ColorMatrixColorFilter(m)));
+    }
+
+    // ---------- sliders: Display and Icon size ----------
+
+    /** A "title  value" line over a slider from min to max. show(value) gives the text (and may update a preview); apply(value) runs on user changes only. */
+    void slider(LinearLayout box, String title, int min, int max, int now, java.util.function.IntFunction<String> show, java.util.function.IntConsumer apply) {
+        TextView t = label(title + "   " + show.apply(now), 15);
+        t.setPadding(px(4), px(14), px(4), px(2));
+        SeekBar bar = new SeekBar(this);
+        bar.setMax(max - min);
+        bar.setProgress(now - min);
+        bar.setKeyProgressIncrement(Math.max(1, (max - min) / 20)); // d-pad left/right
+        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar b, int p, boolean user) {
+                t.setText(title + "   " + show.apply(p + min));
+                if (user) apply.accept(p + min);
+            }
+            @Override public void onStartTrackingTouch(SeekBar b) { }
+            @Override public void onStopTrackingTouch(SeekBar b) { }
+        });
+        box.addView(t);
+        box.addView(bar, new LinearLayout.LayoutParams(px(420), -2));
+    }
+
+    LinearLayout sliderBox() {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(px(24), px(8), px(24), px(8));
+        return box;
+    }
+
+    /** One panel for the picture: backlight is the TV's real one (needs "modify system settings", which build.ps1 grants over adb), color and contrast act on the launcher. */
+    void showDisplay() {
+        LinearLayout box = sliderBox();
+        if (Settings.System.canWrite(this)) {
+            slider(box, "Backlight", 6, 100, Math.round(brightness() * 100 / 255f), v -> v + "%", v -> { // never fully dark
+                Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
+                Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, Math.max(15, Math.round(v * 255 / 100f)));
+            });
+        } else {
+            TextView ask = label("Allow backlight control", 15);
+            ask.setFocusable(true);
+            ask.setOnClickListener(v -> start(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + getPackageName()))));
+            box.addView(ask);
+        }
+        slider(box, "Color", 80, 150, colorPct(), v -> v + "%", v -> { prefs.edit().putInt("pColorP", v).apply(); applyPicture(); });
+        slider(box, "Contrast", 90, 130, contrastPct(), v -> v + "%", v -> { prefs.edit().putInt("pContrastP", v).apply(); applyPicture(); });
+        dialog().setTitle("Display").setView(box).setPositiveButton("Done", null).show();
+    }
+
+    int iconPct() { return prefs.getInt("iconPct", OLD_SIZES[Math.max(0, Math.min(OLD_SIZES.length - 1, prefs.getInt("iconSize", 2)))]); }
+
+    boolean showNames() { return prefs.getBoolean("showNames", true); }
+
+    String iconsLabel() { return iconPct() + "%" + (showNames() ? " · names" : ""); }
+
+    /** Icons panel: a size slider with a live Bruce TV tile at the size the app icons will have on Home, and whether a name shows when an app is focused. Home redraws when it closes. */
+    void showIconSize() {
+        FrameLayout stage = new FrameLayout(this);
+        FrameLayout tile = new FrameLayout(this);
+        tile.setBackgroundResource(R.drawable.tile_bg);
+        tile.setClipToOutline(true);
+        LinearLayout col = new LinearLayout(this);
+        col.setOrientation(LinearLayout.VERTICAL);
+        col.setGravity(Gravity.CENTER);
+        ImageView icon = new ImageView(this);
+        icon.setImageResource(R.drawable.ic_launcher);
+        TextView name = label("Bruce TV", 10);
+        col.addView(icon);
+        col.addView(name, new LinearLayout.LayoutParams(-2, -2));
+        tile.addView(col, new FrameLayout.LayoutParams(-1, -1));
+        stage.addView(tile, new FrameLayout.LayoutParams(0, 0, Gravity.CENTER));
+        LinearLayout box = sliderBox();
+        box.addView(stage, new LinearLayout.LayoutParams(-1, px(120))); // tall enough for the biggest tile, so the slider doesn't jump
+        slider(box, "Icon size", 75, 150, iconPct(), v -> {
+            int[] wh = favTile(v / 100f);
+            tile.setLayoutParams(new FrameLayout.LayoutParams(px(wh[0]), px(wh[1]), Gravity.CENTER));
+            icon.setLayoutParams(new LinearLayout.LayoutParams(px(Math.round(30 * v / 100f)), px(Math.round(30 * v / 100f))));
+            name.setTextSize(Math.round(10 * v / 100f));
+            return v + "%  ·  " + wh[0] + " × " + wh[1];
+        }, v -> prefs.edit().putInt("iconPct", v).apply());
+        android.widget.Switch names = new android.widget.Switch(this);
+        names.setText("Show app name when focused");
+        names.setTextColor(Color.WHITE);
+        names.setPadding(px(4), px(18), px(4), px(4));
+        names.setChecked(showNames());
+        name.setVisibility(showNames() ? View.VISIBLE : View.GONE);
+        names.setOnCheckedChangeListener((b, on) -> {
+            prefs.edit().putBoolean("showNames", on).apply();
+            name.setVisibility(on ? View.VISIBLE : View.GONE);
+        });
+        box.addView(names);
+        dialog().setTitle("Icons").setView(box).setPositiveButton("Done", null).setOnDismissListener(d -> {
+            setTileSub("Icons", iconsLabel());
+            renderFavs(-1);
+            renderGrid(openFolder);
+            liftDockLabel();
+        }).show();
     }
 
     void sleep() {
@@ -1235,12 +1316,20 @@ public class MainActivity extends Activity {
 
     void startGame() { startActivity(new Intent(this, GameBootActivity.class)); }
 
+    static final String[] GAME_LABELS = {"Default · Bruce Game Mode", "3rd party · Playnite", "Steam Big Picture", "Desktop", "Just open Moonlight"};
+    static final String[] GAME_VALUES = {"Game Mode", "Playnite", "Steam Big Picture", "Desktop", ""};
+
+    String gameLabel() {
+        int i = Arrays.asList(GAME_VALUES).indexOf(prefs.getString("game_app", "Game Mode"));
+        return GAME_LABELS[Math.max(0, i)];
+    }
+
+    /** What the Game Mode button streams: Bruce's own menu by default, or a 3rd-party launcher on the PC (Playnite). */
     void gameMenu() {
-        String[] labels = {"Game Mode (console menu)", "Steam Big Picture", "Desktop", "Just open Moonlight"};
-        String[] values = {"Game Mode", "Steam Big Picture", "Desktop", ""};
-        dialog().setTitle("Game Mode streams…").setItems(labels, (d, w) -> {
-            prefs.edit().putString("game_app", values[w]).apply();
-            toast("Game Mode → " + labels[w]);
+        dialog().setTitle("Game Mode opens…").setItems(GAME_LABELS, (d, w) -> {
+            prefs.edit().putString("game_app", GAME_VALUES[w]).apply();
+            setTileSub("Game Mode app", gameLabel());
+            toast(w == 1 ? "Game Mode → Playnite (it must be installed on the PC)" : "Game Mode → " + GAME_LABELS[w]);
         }).show();
     }
 
@@ -1271,11 +1360,15 @@ public class MainActivity extends Activity {
         bg.execute(() -> {
             try {
                 String[] pick = mode.equals("nature") ? natureToday() : null;
-                byte[] data = pick != null ? http(pick[0]) : http("https://www.bing.com" + bingImages(1).getJSONObject(0).getString("url"));
+                // a photo's 1920 px version is made on first request, which can take longer than the usual timeout
+                byte[] data = pick != null ? http(pick[0], 60_000) : http("https://www.bing.com" + bingImages(1).getJSONObject(0).getString("url"), 60_000);
                 saveWallpaper(data, mode);
                 prefs.edit().putString("bingDay", day).apply(); // only a success counts: a failed try (network not up after wake) is retried
                 if (say && pick != null) ui.post(() -> toast(pick[1]));
-            } catch (Exception e) { android.util.Log.w("Bearacle", "daily wallpaper", e); }
+            } catch (Exception e) {
+                android.util.Log.w("Bearacle", "daily wallpaper", e);
+                ui.postDelayed(this::checkDaily, 150_000); // the network may still be coming up after the TV woke: try again, whether or not Home stays in front
+            }
         });
     }
 
@@ -1509,7 +1602,9 @@ public class MainActivity extends Activity {
     }
 
     /** Width, height and gap (dp) of the app tiles on Home. */
-    int[] favTile() {
+    int[] favTile() { return favTile(iconScale()); }
+
+    int[] favTile(float scale) {
         int[] t;
         switch (layout) {
             case "dock": t = new int[]{96, 54, 10}; break;
@@ -1517,8 +1612,8 @@ public class MainActivity extends Activity {
             case "bottom": t = new int[]{128, 72, 12}; break;
             default: t = new int[]{112, 63, 12};
         }
-        t[0] = Math.round(t[0] * iconScale());
-        t[1] = Math.round(t[1] * iconScale());
+        t[0] = Math.round(t[0] * scale);
+        t[1] = Math.round(t[1] * scale);
         return t;
     }
 
@@ -1530,9 +1625,7 @@ public class MainActivity extends Activity {
         dockLabel.setLayoutParams(dl);
     }
 
-    int sizeIndex() { return Math.max(0, Math.min(SIZES.length - 1, prefs.getInt("iconSize", 2))); }
-
-    float iconScale() { return SIZES[sizeIndex()]; }
+    float iconScale() { return iconPct() / 100f; }
 
     int skinIndex() {
         String k = prefs.getString("skin", "default");
@@ -1701,10 +1794,12 @@ public class MainActivity extends Activity {
         return out.toByteArray();
     }
 
-    static byte[] http(String url) throws Exception {
+    static byte[] http(String url) throws Exception { return http(url, 15000); }
+
+    static byte[] http(String url, int readTimeout) throws Exception {
         HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
         c.setConnectTimeout(8000);
-        c.setReadTimeout(15000);
+        c.setReadTimeout(readTimeout);
         c.setRequestProperty("User-Agent", "BruceTV/2.0");
         try (InputStream in = c.getInputStream()) { return readAll(in); }
         finally { c.disconnect(); }

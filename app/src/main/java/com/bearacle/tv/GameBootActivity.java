@@ -39,6 +39,19 @@ public class GameBootActivity extends Activity {
         }
         String app = p.getString("game_app", "Game Mode");
         title = app.isEmpty() ? "MOONLIGHT" : app.toUpperCase(Locale.ROOT);
+        if (app.equals("Game Mode") || app.equals("Playnite")) { // tell the PC what its "Game Mode" app should open (done during the intro)
+            String pc = "http://" + p.getString("pc_ip", "") + ":8766/api/launcher/" + (app.equals("Playnite") ? "playnite" : "gamemode");
+            new Thread(() -> {
+                try {
+                    java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL(pc).openConnection();
+                    c.setRequestMethod("POST");
+                    c.setConnectTimeout(3000);
+                    c.setReadTimeout(3000);
+                    c.getResponseCode();
+                    c.disconnect();
+                } catch (Exception ignored) { } // PC off or an old helper: Game Mode opens its own menu
+            }).start();
+        }
         BootView v = new BootView(this, title);
         setContentView(v);
         // With the cover available the intro stops before its fade-out and the cover carries on from there.
@@ -70,7 +83,7 @@ public class GameBootActivity extends Activity {
         Intent i = new Intent().setClassName("com.limelight", "com.limelight.ShortcutTrampoline")
                 .putExtra("Name", p.getString("pc_name", ""))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        if (!app.isEmpty()) i.putExtra("AppName", app);
+        if (!app.isEmpty()) i.putExtra("AppName", app.equals("Playnite") ? "Game Mode" : app); // Playnite runs inside the PC's Game Mode app
         // Keep the intro on screen while Moonlight connects underneath.
         boolean covered = KeyService.instance != null && KeyService.instance.showCover(title);
         try {

@@ -34,6 +34,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if ipaddress.ip_address(self.client_address[0]).is_private and self.path == "/api/rescan":
             threading.Thread(target=s.load_library, daemon=True).start()
             return self.send(200, b"{}")
+        if ipaddress.ip_address(self.client_address[0]).is_private and self.path in ("/api/launcher/playnite", "/api/launcher/gamemode"):
+            s.save_json(s.LAUNCHER_FILE, {"mode": self.path.rsplit("/", 1)[1]})  # what the next "Game Mode" stream opens, see server.main
+            return self.send(200, b"{}")
         self.send(404)
 
     def do_GET(self):
