@@ -77,6 +77,21 @@ Optional: install **DS4Windows** first if you use a DualShock 4, and the script 
 
 ### Step 2: Install Bruce TV on the TV
 
+Pick whichever is easier for you.
+
+#### Option A: from your phone (no PC needed)
+
+1. On your phone, open the [latest release](https://github.com/martintenovski/BruceTV/releases/latest) and download **`bruce-tv-<version>.apk`**.
+2. Send it to the TV with any file-transfer app (for example **Send Files to TV**, installed on both the phone and the TV). A USB stick works too.
+3. On the TV, open the file in a file manager (for example *Files by Google* or *X-plore*) and choose **Install**. If it says installs from this app are blocked, allow it for that file manager and go back.
+4. Open **Bruce TV**. The [setup wizard](#step-3-follow-the-setup-wizard-on-the-tv) starts.
+5. Turn on the extras (each takes a few clicks, and Bruce TV opens the right screen when it needs one):
+   - **Home button:** Settings › Accessibility › **Bruce TV Home button** › On. This also enables Sleep and Restart in Control Center.
+   - **Brightness controls:** when Control Center asks, allow Bruce TV to *modify system settings*.
+   - **Recent apps:** Settings › Apps › Special app access › **Usage access** › Bruce TV › Allow. (If your TV doesn't list it, use Option B, which sets it for you.)
+
+#### Option B: from your PC (one command, sets everything up)
+
 **On the TV**, turn on wireless debugging (once):
 
 1. Settings › System › About, then press OK on **Build** (or *Android TV OS build*) seven times to unlock Developer options.
@@ -91,10 +106,10 @@ adb pair <pairing-ip:pairing-port> <6-digit-code>    # first time only
 .\install-tv.ps1 -Tv <ip:port>                       # the address from Wireless debugging
 ```
 
-`install-tv.ps1` downloads the latest release, installs it, grants the permissions Bruce TV needs, turns on the **Bruce TV Home button** accessibility service, makes it your home screen and starts it. Run it again any time to update.
+`install-tv.ps1` downloads the latest release, installs it, grants all the permissions, turns on the **Bruce TV Home button** accessibility service, makes it your home screen and starts it. Run it again any time to update.
 
 <details>
-<summary>Prefer to do it by hand, or on Mac/Linux?</summary>
+<summary>Option B by hand, or on Mac/Linux</summary>
 
 Download `bruce-tv-<version>.apk` from the [latest release](https://github.com/martintenovski/BruceTV/releases/latest), then:
 
@@ -115,7 +130,7 @@ adb shell settings put secure accessibility_enabled 1
 
 ### Step 3: Follow the setup wizard on the TV
 
-The first time Bruce TV opens, a **setup wizard** guides you through the rest. It takes about a minute, and you can run it again any time from Control Center › **Setup**.
+The first time Bruce TV opens (either option), a **setup wizard** guides you through the rest. It takes about a minute, and you can run it again any time from Control Center › **Setup**.
 
 1. **Pick your home screen**: Classic, Dock, Bento or Bottom bar.
 2. **Game Mode**: choose *Set up Game Mode*, or *Not now* to finish with just the launcher.
