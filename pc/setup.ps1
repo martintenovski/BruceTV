@@ -46,6 +46,9 @@ Ok $py
 # ---------- Apollo ----------
 Step "Apollo (the streaming host)"
 $apollo = "C:\Program Files\Apollo"
+# Apollo isn't always in Program Files: ask the Windows service where it lives
+$svcPath = (Get-CimInstance Win32_Service -Filter "Name='ApolloService'" -ErrorAction SilentlyContinue).PathName
+if ($svcPath -match '^"?([^"]+?)\\[^\\"]+\.exe') { $apollo = $Matches[1] }
 $cfg = "$apollo\config\apps.json"
 if (Test-Path $cfg) {
     Ok "found at $apollo"
@@ -74,7 +77,8 @@ if (Test-Path $cfg) {
         Ok "Game Mode added to Apollo's app list (backup: apps.json.bak)"
     } else { Ok "Game Mode is already in Apollo's app list" }
 } else {
-    Warn "Apollo isn't installed. Get it from https://github.com/ClassicOldSong/Apollo/releases, install it, then run this again."
+    Warn "Apollo's app list wasn't found at $cfg, so 'Game Mode' was NOT added (the TV will say 'Provided app is not valid')."
+    Warn "Install Apollo from https://github.com/ClassicOldSong/Apollo/releases (plain Sunshine isn't supported), start it once, then run this again."
 }
 
 # ---------- firewall ----------
