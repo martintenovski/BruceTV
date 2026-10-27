@@ -38,7 +38,7 @@ HIDDEN_FILE = os.path.join(HERE, "hidden.json")   # game ids kept out of the men
 FOLDERS_FILE = os.path.join(HERE, "game-folders.json")   # extra folders the game scan looks through
 PLAYNITE_FILE = os.path.join(HERE, "playnite.json")   # {"dir": ...}: where the user says Playnite is (empty: look for it)
 LAUNCHER_FILE = os.path.join(HERE, "launcher.json")   # {"mode": "playnite"}: what the TV wants Game Mode to open (set through last-game.py)
-APOLLO_CONF = r"C:\Program Files\Apollo\config\sunshine.conf"
+APOLLO_CONFS = [r"C:\Program Files\Apollo\config\sunshine.conf", r"C:\Program Files\Sunshine\config\sunshine.conf"]
 BROWSERS = [r"C:\Program Files\Google\Chrome\Application\chrome.exe",
             r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"]
 NO_WINDOW = 0x08000000
@@ -272,10 +272,12 @@ def playnite_saved():
 def pc_name():
     """The name Moonlight lists this PC under: Apollo's own setting, else the computer name."""
     try:
-        for line in read(APOLLO_CONF).splitlines():
-            k, _, v = line.partition("=")
-            if k.strip() == "sunshine_name" and v.strip():
-                return v.strip()
+        for conf in APOLLO_CONFS:
+            if os.path.isfile(conf):
+                for line in read(conf).splitlines():
+                    k, _, v = line.partition("=")
+                    if k.strip() == "sunshine_name" and v.strip():
+                        return v.strip()
     except OSError:
         pass
     return socket.gethostname()

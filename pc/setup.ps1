@@ -44,14 +44,17 @@ $pyw = Join-Path (Split-Path $py) "pythonw.exe"
 Ok $py
 
 # ---------- Apollo ----------
-Step "Apollo (the streaming host)"
-$apollo = "C:\Program Files\Apollo"
-# Apollo isn't always in Program Files: ask the Windows service where it lives
-$svcPath = (Get-CimInstance Win32_Service -Filter "Name='ApolloService'" -ErrorAction SilentlyContinue).PathName
-if ($svcPath -match '^"?([^"]+?)\\[^\\"]+\.exe') { $apollo = $Matches[1] }
-$cfg = "$apollo\config\apps.json"
-if (Test-Path $cfg) {
-    Ok "found at $apollo"
+Step "Apollo or Sunshine (the streaming host)"
+# Same app list format in both. Neither is always in Program Files, so ask the Windows service where it lives
+$host_ = $null
+foreach ($n in "Apollo", "Sunshine") {
+    $svcPath = (Get-CimInstance Win32_Service -Filter "Name='${n}Service'" -ErrorAction SilentlyContinue).PathName
+    $dir = if ($svcPath -match '^"?([^"]+?)\\[^\\"]+\.exe') { $Matches[1] } else { "C:\Program Files\$n" }
+    if (Test-Path "$dir\config\apps.json") { $host_ = @{ Name = $n; Dir = $dir }; break }
+}
+$cfg = "$($host_.Dir)\config\apps.json"
+if ($host_) {
+    Ok "$($host_.Name) found at $($host_.Dir)"
     $json = Get-Content $cfg -Raw | ConvertFrom-Json
     $server = Join-Path $gm "server.py"
     $cmd = "`"$pyw`" `"$server`""
@@ -73,12 +76,12 @@ if (Test-Path $cfg) {
     }
     if ($changed) {
         [IO.File]::WriteAllText($cfg, ($json | ConvertTo-Json -Depth 10)) # no BOM
-        Restart-Service ApolloService
-        Ok "Game Mode added to Apollo's app list (backup: apps.json.bak)"
-    } else { Ok "Game Mode is already in Apollo's app list" }
+        Restart-Service "$($host_.Name)Service"
+        Ok "Game Mode added to $($host_.Name)'s app list (backup: apps.json.bak)"
+    } else { Ok "Game Mode is already in $($host_.Name)'s app list" }
 } else {
-    Warn "Apollo's app list wasn't found at $cfg, so 'Game Mode' was NOT added (the TV will say 'Provided app is not valid')."
-    Warn "Install Apollo from https://github.com/ClassicOldSong/Apollo/releases (plain Sunshine isn't supported), start it once, then run this again."
+    Warn "Neither Apollo nor Sunshine was found, so 'Game Mode' was NOT added (the TV will say 'Provided app is not valid')."
+    Warn "Install Apollo (https://github.com/ClassicOldSong/Apollo/releases) or Sunshine, start it once, then run this again."
 }
 
 # ---------- firewall ----------
