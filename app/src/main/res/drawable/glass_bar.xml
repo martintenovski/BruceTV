@@ -1,5 +1,16 @@
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <gradient android:angle="270" android:startColor="?attr/barFill1" android:endColor="?attr/barFill2" />
-    <stroke android:width="?attr/rimW" android:color="?attr/barStroke" />
-    <corners android:radius="999dp" />
-</shape>
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <gradient android:angle="270" android:startColor="?attr/barFill1" android:endColor="?attr/barFill2" />
+            <stroke android:width="?attr/rimW" android:color="?attr/barStroke" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient android:angle="270" android:startColor="?attr/sheen" android:centerColor="#00FFFFFF" android:endColor="#00FFFFFF" android:centerY="0.45" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+</layer-list>

@@ -224,10 +224,13 @@
             android:paddingBottom="4dp">
 
             <TextClock
+                android:id="@+id/clock"
+                android:shadowRadius="0"
                 style="@style/Shadowed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-light"
+                android:fontFamily="sans-serif"
+                android:textStyle="bold"
                 android:format12Hour="h:mm"
                 android:format24Hour="H:mm"
                 android:includeFontPadding="false"

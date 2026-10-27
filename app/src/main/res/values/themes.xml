@@ -11,32 +11,92 @@
         <item name="tileFill2">#2AFFFFFF</item>
         <item name="rimStroke">#26FFFFFF</item>
         <item name="rimW">1dp</item>
+        <item name="sheen">#00FFFFFF</item>
+        <item name="btnSheen">#00FFFFFF</item>
+        <item name="plainFill1">#CCFFFFFF</item>
+        <item name="plainFill2">#CCFFFFFF</item>
+        <item name="toolFill">#CCFFFFFF</item>
+        <item name="toolRim">#00FFFFFF</item>
+        <item name="toolInk">#000000</item>
+        <item name="plainRim">#00FFFFFF</item>
+        <item name="plainInk">#000000</item>
+        <item name="panelSheen">#00FFFFFF</item>
+        <item name="panelFill1">#D914171E</item>
+        <item name="panelFill2">#D914171E</item>
     </style>
 
-    <!-- Applied over Theme.Bearacle by MainActivity (pref "skin"): clear glass with a bright rim. -->
+    <!-- Applied over Theme.Bearacle by MainActivity (pref "skin"). The dock and Control Center draw a lightly blurred wallpaper under these fills (Frost.java). -->
     <style name="SkinGlass">
-        <item name="barFill1">#48FFFFFF</item>
-        <item name="barFill2">#1AFFFFFF</item>
-        <item name="barStroke">#99FFFFFF</item>
+        <item name="barFill1">#3DFFFFFF</item>
+        <item name="barFill2">#14FFFFFF</item>
+        <item name="barStroke">#B3FFFFFF</item>
         <item name="btnFill1">#40FFFFFF</item>
         <item name="btnFill2">#14FFFFFF</item>
-        <item name="tileFill1">#40FFFFFF</item>
-        <item name="tileFill2">#14FFFFFF</item>
-        <item name="rimStroke">#80FFFFFF</item>
+        <item name="tileFill1">#2EFFFFFF</item>
+        <item name="tileFill2">#12FFFFFF</item>
+        <item name="rimStroke">#99FFFFFF</item>
         <item name="rimW">1.5dp</item>
+        <item name="sheen">#4DFFFFFF</item>
+        <item name="btnSheen">#08FFFFFF</item>
+        <item name="plainFill1">#14FFFFFF</item>
+        <item name="plainFill2">#08FFFFFF</item>
+        <item name="plainRim">#66FFFFFF</item>
+        <item name="plainInk">#FFFFFF</item>
+        <item name="toolFill">#26000000</item>
+        <item name="toolRim">#33FFFFFF</item>
+        <item name="toolInk">#FFFFFF</item>
+        <item name="panelSheen">#1FFFFFFF</item>
+        <item name="panelFill1">#B3263652</item>
+        <item name="panelFill2">#A0141E34</item>
     </style>
 
-    <!-- Milky, more opaque tint with a soft rim. -->
+    <!-- Milky and heavily blurred, with a soft rim. -->
     <style name="SkinFrosted">
-        <item name="barFill1">#66E4EBF5</item>
-        <item name="barFill2">#4DD3DDEC</item>
-        <item name="barStroke">#55FFFFFF</item>
+        <item name="barFill1">#80E4EBF5</item>
+        <item name="barFill2">#5CC9D6EA</item>
+        <item name="barStroke">#80FFFFFF</item>
         <item name="btnFill1">#5CE4EBF5</item>
         <item name="btnFill2">#46D3DDEC</item>
-        <item name="tileFill1">#52FFFFFF</item>
-        <item name="tileFill2">#3DFFFFFF</item>
-        <item name="rimStroke">#44FFFFFF</item>
+        <item name="tileFill1">#33FFFFFF</item>
+        <item name="tileFill2">#1FFFFFFF</item>
+        <item name="rimStroke">#66FFFFFF</item>
         <item name="rimW">1dp</item>
+        <item name="sheen">#33FFFFFF</item>
+        <item name="btnSheen">#12FFFFFF</item>
+        <item name="plainFill1">#38DCE4F0</item>
+        <item name="plainFill2">#24B7C3D6</item>
+        <item name="plainRim">#66FFFFFF</item>
+        <item name="plainInk">#FFFFFF</item>
+        <item name="toolFill">#2E000000</item>
+        <item name="toolRim">#4DFFFFFF</item>
+        <item name="toolInk">#FFFFFF</item>
+        <item name="panelSheen">#1AFFFFFF</item>
+        <item name="panelFill1">#BF2F4059</item>
+        <item name="panelFill2">#AC1D2A42</item>
+    </style>
+
+    <!-- Dark mode, applied over the skin: grey glass instead of white, light ink. -->
+    <style name="SkinDark">
+        <item name="barFill1">#66596070</item>
+        <item name="barFill2">#4D3F4553</item>
+        <item name="barStroke">#40FFFFFF</item>
+        <item name="btnFill1">#7A2E333D</item>
+        <item name="btnFill2">#66191C22</item>
+        <item name="tileFill1">#2EFFFFFF</item>
+        <item name="tileFill2">#14FFFFFF</item>
+        <item name="rimStroke">#38FFFFFF</item>
+        <item name="sheen">#1FFFFFFF</item>
+        <item name="panelSheen">#14FFFFFF</item>
+        <item name="panelFill1">#A62E333D</item>
+        <item name="panelFill2">#8C16181F</item>
+        <item name="btnSheen">#1FFFFFFF</item>
+        <item name="plainFill1">#99454B57</item>
+        <item name="plainFill2">#802A2F38</item>
+        <item name="plainRim">#40FFFFFF</item>
+        <item name="plainInk">#FFFFFF</item>
+        <item name="toolFill">#33000000</item>
+        <item name="toolRim">#26FFFFFF</item>
+        <item name="toolInk">#FFFFFF</item>
     </style>
 
     <style name="Pill">
@@ -61,9 +121,10 @@
         <item name="android:layout_marginEnd">6dp</item>
         <item name="android:gravity">center</item>
         <item name="android:drawablePadding">8dp</item>
-        <item name="android:drawableTint">#000000</item>
+        <item name="android:drawableTint">@color/btn_ink</item>
         <item name="android:textSize">14sp</item>
-        <item name="android:textColor">#000000</item>
+        <item name="android:textColor">@color/btn_ink</item>
+        <item name="android:tag">glass:14</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:background">@drawable/btn_white</item>
         <item name="android:focusable">true</item>
@@ -81,7 +142,8 @@
     </style>
 
     <style name="IconChip" parent="IconBtn">
-        <item name="android:tint">#000000</item>
+        <item name="android:tint">@color/btn_ink</item>
+        <item name="android:tag">glass:999</item>
         <item name="android:background">@drawable/chip_bg</item>
     </style>
 
@@ -92,7 +154,8 @@
         <item name="android:layout_marginStart">6dp</item>
         <item name="android:padding">13dp</item>
         <item name="android:scaleType">fitCenter</item>
-        <item name="android:tint">#000000</item>
+        <item name="android:tint">@color/tool_ink</item>
+        <item name="android:tag">glass:14</item>
         <item name="android:background">@drawable/tool_bg</item>
         <item name="android:focusable">true</item>
     </style>
@@ -107,9 +170,10 @@
         <item name="android:paddingTop">5dp</item>
         <item name="android:paddingBottom">4dp</item>
         <item name="android:drawablePadding">2dp</item>
-        <item name="android:drawableTint">#000000</item>
+        <item name="android:drawableTint">@color/btn_ink</item>
         <item name="android:textSize">11sp</item>
-        <item name="android:textColor">#000000</item>
+        <item name="android:textColor">@color/btn_ink</item>
+        <item name="android:tag">glass:14</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:background">@drawable/nav_item</item>
         <item name="android:focusable">true</item>
@@ -123,6 +187,7 @@
         <item name="android:layout_margin">5dp</item>
         <item name="android:orientation">vertical</item>
         <item name="android:padding">14dp</item>
+        <item name="android:tag">glass:14</item>
         <item name="android:background">@drawable/btn_white</item>
         <item name="android:focusable">true</item>
     </style>
@@ -145,12 +210,14 @@
 
     <!-- Text on the white Bento tiles. -->
     <style name="BentoBtnTitle" parent="BentoTitle">
-        <item name="android:textColor">#000000</item>
+        <item name="android:textColor">@color/btn_ink</item>
+        <item name="android:duplicateParentState">true</item>
         <item name="android:shadowRadius">0</item>
     </style>
 
     <style name="BentoBtnSub" parent="BentoSub">
-        <item name="android:textColor">#000000</item>
+        <item name="android:textColor">@color/btn_ink</item>
+        <item name="android:duplicateParentState">true</item>
         <item name="android:shadowRadius">0</item>
         <item name="android:alpha">0.7</item>
     </style>

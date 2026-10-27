@@ -24,6 +24,13 @@
         android:layout_height="match_parent"
         android:background="@drawable/scrim" />
 
+    <View
+        android:id="@+id/clockGlow"
+        android:layout_width="620dp"
+        android:layout_height="460dp"
+        android:alpha="0"
+        android:background="@drawable/glow" />
+
     <FrameLayout
         android:id="@+id/home"
         android:layout_width="match_parent"
@@ -32,6 +39,7 @@
         android:clipToPadding="false">
 
         <LinearLayout
+            android:id="@+id/clockBlock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="56dp"
@@ -39,10 +47,13 @@
             android:orientation="vertical">
 
             <TextClock
+                android:id="@+id/clock"
+                android:shadowRadius="0"
                 style="@style/Shadowed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-light"
+                android:fontFamily="sans-serif"
+                android:textStyle="bold"
                 android:format12Hour="h:mm"
                 android:format24Hour="H:mm"
                 android:includeFontPadding="false"
@@ -76,6 +87,57 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/miniClock"
+            android:clipChildren="false"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_gravity="start|top"
+            android:layout_marginStart="48dp"
+            android:layout_marginTop="28dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextClock
+                android:id="@+id/miniTime"
+                style="@style/Shadowed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="-12dp"
+                android:layout_marginTop="-12dp"
+                android:layout_marginEnd="-12dp"
+                android:layout_marginBottom="-12dp"
+                android:padding="12dp"
+                android:fontFamily="sans-serif"
+                android:format12Hour="h:mm"
+                android:format24Hour="H:mm"
+                android:includeFontPadding="false"
+                android:shadowColor="#B3000000"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="14"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/miniWeather"
+                style="@style/Shadowed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_marginTop="-12dp"
+                android:layout_marginEnd="-12dp"
+                android:layout_marginBottom="-12dp"
+                android:padding="12dp"
+                android:fontFamily="sans-serif-medium"
+                android:shadowColor="#B3000000"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="12"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end|top"
@@ -89,6 +151,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
                 android:background="@drawable/chip_bg"
+                android:tag="glass:999"
                 android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
@@ -100,7 +163,7 @@
                     android:layout_height="16dp"
                     android:duplicateParentState="true"
                     android:src="@drawable/ic_wifi"
-                    android:tint="#000000" />
+                    android:tint="@color/btn_ink" />
 
                 <TextView
                     android:id="@+id/netLabel"
@@ -109,7 +172,7 @@
                     android:layout_marginStart="8dp"
                     android:duplicateParentState="true"
                     android:fontFamily="sans-serif-medium"
-                    android:textColor="#000000"
+                    android:textColor="@color/btn_ink"
                     android:textSize="13sp" />
             </LinearLayout>
 
@@ -129,6 +192,7 @@
             android:textSize="16sp" />
 
         <LinearLayout
+            android:id="@+id/dockBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
@@ -140,7 +204,10 @@
             android:clipToPadding="false"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:paddingStart="8dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="8dp">
 
             <HorizontalScrollView
                 android:id="@+id/favScroll"
@@ -158,16 +225,16 @@
                     android:clipChildren="false"
                     android:clipToPadding="false"
                     android:orientation="horizontal"
-                    android:paddingStart="8dp"
+                    android:paddingStart="12dp"
                     android:paddingTop="12dp"
-                    android:paddingEnd="8dp"
+                    android:paddingEnd="0dp"
                     android:paddingBottom="12dp" />
             </HorizontalScrollView>
 
             <View
                 android:layout_width="1dp"
                 android:layout_height="36dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
                 android:background="#33FFFFFF" />
 

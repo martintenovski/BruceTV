@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Button: glass fill from the skin (white in Default), solid white while focused. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true"><shape><solid android:color="#FFFFFFFF" /><corners android:radius="999dp" /></shape></item>
-    <item><shape><solid android:color="#CCFFFFFF" /><corners android:radius="999dp" /></shape></item>
+    <item>
+        <layer-list>
+            <item>
+                <shape>
+                    <gradient android:angle="270" android:startColor="?attr/plainFill1" android:endColor="?attr/plainFill2" />
+                    <stroke android:width="?attr/rimW" android:color="?attr/plainRim" />
+                    <corners android:radius="999dp" />
+                </shape>
+            </item>
+            <item>
+                <shape>
+                    <gradient android:angle="270" android:startColor="?attr/btnSheen" android:centerColor="#00FFFFFF" android:endColor="#00FFFFFF" android:centerY="0.45" />
+                    <corners android:radius="999dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
 </selector>

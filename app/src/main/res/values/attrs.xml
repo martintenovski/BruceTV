@@ -10,4 +10,16 @@
     <attr name="tileFill2" format="color" />
     <attr name="rimStroke" format="color" />
     <attr name="rimW" format="dimension" />
+    <attr name="sheen" format="color" />
+    <attr name="btnSheen" format="color" />
+    <attr name="plainFill1" format="color" />
+    <attr name="plainFill2" format="color" />
+    <attr name="plainRim" format="color" />
+    <attr name="plainInk" format="color" />
+    <attr name="toolFill" format="color" />
+    <attr name="toolRim" format="color" />
+    <attr name="toolInk" format="color" />
+    <attr name="panelSheen" format="color" />
+    <attr name="panelFill1" format="color" />
+    <attr name="panelFill2" format="color" />
 </resources>

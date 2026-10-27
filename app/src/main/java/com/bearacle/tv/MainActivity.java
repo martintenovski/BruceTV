@@ -20,14 +20,19 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.RenderEffect;
 import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.media.tv.TvContract;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
@@ -108,6 +113,8 @@ public class MainActivity extends Activity {
     boolean appsDirty = true;
     long weatherAt;
     String openFolder;
+    final List<View> frosted = new ArrayList<>();
+    boolean darkOn;  // dark mode as it was when this screen inflated; the look is a theme, so a change recreates the screen
     String moving;   // package being repositioned on the Home row (left/right moves it, OK drops it)
     long wallTry;
     static final String HOME_HINT = "Hold OK on an app for options";
@@ -122,6 +129,9 @@ public class MainActivity extends Activity {
     static final String[][] SKINS = {
             {"default", "Default"}, {"glass", "Glassy"}, {"frosted", "Frosted glass"}};
     static final int[] SKIN_STYLE = {0, R.style.SkinGlass, R.style.SkinFrosted};
+    static final int DIM = 0x26000000; // dark mode: the layer over the wallpaper (15% black)
+    static final float DARK_SCRIM = 0.6f; // dark mode: how much of the top/bottom shading gradient shows
+    static final int OVERLAY_DIM = 0x66000000; // light mode: behind Apps, Recent, Wallpaper and Control Center, so their text reads
     static final int[] OLD_SIZES = {75, 88, 100, 115, 130, 150}; // the steps of the old Icon size button, kept so a chosen size survives
     List<String[]> contRows = new ArrayList<>();
     String weatherText = "";
@@ -164,6 +174,8 @@ public class MainActivity extends Activity {
         if (layoutName(layout) == null) layout = "classic"; // a layout that was removed
         int skin = skinIndex();
         if (SKIN_STYLE[skin] != 0) getTheme().applyStyle(SKIN_STYLE[skin], true); // must be on the theme before the layout inflates
+        darkOn = dark();
+        if (darkOn) getTheme().applyStyle(R.style.SkinDark, true);
         setContentView(layoutRes());
         applyPicture();
         wall = findViewById(R.id.wall);
@@ -194,6 +206,14 @@ public class MainActivity extends Activity {
         contSub = findViewById(R.id.contSub);
         dockLabel = findViewById(R.id.dockLabel);
         liftDockLabel();
+        dim.setBackgroundColor(darkOn ? DIM : OVERLAY_DIM);
+        applyRecentButton();
+        applyHints();
+        if (glassy()) {
+            frost(R.id.dockBar, 24);
+            frost(R.id.controlOverlay, 24);
+            frostButtons(findViewById(android.R.id.content));
+        }
         gameArt = findViewById(R.id.gameArt);
         gameSub = findViewById(R.id.gameSub);
         wxScene = findViewById(R.id.wxAnim);
@@ -203,6 +223,8 @@ public class MainActivity extends Activity {
         wxCode = prefs.getInt("wxCode", -1);
         wxDay = prefs.getBoolean("wxDay", hr >= 7 && hr < 19);
         setText(weather, weatherText);
+        setText((TextView) findViewById(R.id.miniWeather), shortWeather(weatherText));
+        applyClockMode();
         applyWx();
         tweakNav();
 
@@ -266,6 +288,8 @@ public class MainActivity extends Activity {
         home.getViewTreeObserver().addOnGlobalFocusChangeListener((old, now) -> {
             if (dockLabel != null && now != null) // Dock layout: name of the focused app or tool above the dock
                 dockLabel.setText((now.getParent() == favRow && showNames()) || now.getParent() == favScroll().getParent() ? now.getContentDescription() : "");
+            if (old != null && now != null && old.getParent() == grid && now.getParent() == grid && old.getTop() != now.getTop()) // All apps: the ScrollView moves focus up/down itself, silently
+                now.playSoundEffect(now.getTop() > old.getTop() ? SoundEffectConstants.NAVIGATION_DOWN : SoundEffectConstants.NAVIGATION_UP);
             if (old == null || now == null || old.getParent() != now.getParent()) return;
             if (now.getParent() != favRow && now.getParent() != continueRow) return;
             ViewGroup row = (ViewGroup) now.getParent();
@@ -324,6 +348,7 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         if (moving != null) endMove();
         else if (appsOverlay.getVisibility() == View.VISIBLE && openFolder != null) { renderGrid(null); focusFirst(grid); }
+        else if (controlOverlay.getVisibility() == View.VISIBLE && ccSection != null) showControl(null);
         else if (home.getVisibility() != View.VISIBLE) closeOverlays();
         // A launcher never finishes on Back.
     }
@@ -377,18 +402,21 @@ public class MainActivity extends Activity {
 
     void renderFavs(int focusIndex) {
         favRow.removeAllViews();
+        int[] fill = fillTile();
+        int[] sz = fill != null ? fill : favTile();
+        float s = fill != null ? sz[1] / 54f : iconScale(); // the dock's tiles are 54dp tall at 100%
         for (String p : favs()) {
             App a = apps.get(p);
             if (a == null) continue;
-            int[] sz = favTile();
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(px(sz[0]), px(sz[1]));
             lp.setMarginEnd(px(sz[2]));
-            View t = tile(a, iconScale(), true);
+            View t = tile(a, s, true);
             if (p.equals(moving)) t.setForeground(movingRing());
             favRow.addView(t, lp);
         }
         if (focusIndex >= 0 && favRow.getChildCount() > 0)
             favRow.getChildAt(Math.min(focusIndex, favRow.getChildCount() - 1)).requestFocus();
+        liftDockLabel(); // the dock's height follows its tiles
     }
 
     /** All apps (Play Store first, then folders, then the rest), or the apps of one folder. */
@@ -436,6 +464,11 @@ public class MainActivity extends Activity {
         return d.getConstantState() != null ? d.getConstantState().newDrawable(getResources()) : d;
     }
 
+    /** Dark mode: a darker shade on app art (not see-through, so the glass behind stays as it is). */
+    void shade(ImageView iv) {
+        if (darkOn) iv.setColorFilter(0xFFE8E8E8, android.graphics.PorterDuff.Mode.MULTIPLY);
+    }
+
     View tile(App a) { return tile(a, 1f); }
 
     View tile(App a, float s) { return tile(a, s, false); }
@@ -448,6 +481,7 @@ public class MainActivity extends Activity {
             ImageView iv = new ImageView(this);
             iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
             iv.setImageDrawable(copy(a.art));
+            shade(iv);
             f.addView(iv, new FrameLayout.LayoutParams(-1, -1));
             if (home && showNames()) { // banners carry no name of their own: lay it over the bottom edge
                 name = label(a.label, Math.round(10 * s));
@@ -461,6 +495,7 @@ public class MainActivity extends Activity {
             col.setGravity(Gravity.CENTER);
             ImageView iv = new ImageView(this);
             iv.setImageDrawable(copy(a.art));
+            shade(iv);
             col.addView(iv, new LinearLayout.LayoutParams(px(Math.round(30 * s)), px(Math.round(30 * s))));
             if (!home || showNames()) {
                 name = label(a.label, Math.round(10 * s));
@@ -476,6 +511,10 @@ public class MainActivity extends Activity {
         f.setOnClickListener(v -> launch(a.pkg));
         f.setOnLongClickListener(v -> { appMenu(a); return true; });
         f.setOnKeyListener((v, k, e) -> {
+            if (home && layout.equals("dock") && k == KeyEvent.KEYCODE_DPAD_DOWN) { // Dock: Down from the apps opens All apps
+                if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0) showApps();
+                return true;
+            }
             if (k == KeyEvent.KEYCODE_MENU && e.getAction() == KeyEvent.ACTION_UP) { appMenu(a); return true; }
             return false;
         });
@@ -568,6 +607,7 @@ public class MainActivity extends Activity {
         moving = a.pkg;
         if (home.getVisibility() != View.VISIBLE) closeOverlays(false);
         setText(homeHint, "◀ ▶  move " + a.label + "   ·   OK to drop it here");
+        if (homeHint != null) homeHint.setVisibility(View.VISIBLE); // this one is instructions, not a tip
         renderFavs(shown(favs(), favs().indexOf(a.pkg)));
     }
 
@@ -576,6 +616,7 @@ public class MainActivity extends Activity {
         String p = moving;
         moving = null;
         setText(homeHint, HOME_HINT);
+        applyHints();
         renderFavs(shown(favs(), favs().indexOf(p)));
     }
 
@@ -700,6 +741,7 @@ public class MainActivity extends Activity {
         o.animate().cancel();
         if (fresh) { o.setAlpha(0f); o.setTranslationY(px(14)); }
         o.setVisibility(View.VISIBLE);
+        if (!darkOn) dim.animate().alpha(1f).setDuration(200).start();
         o.animate().alpha(1f).translationY(0f).setDuration(200).setInterpolator(new DecelerateInterpolator()).withLayer().setListener(null).start();
         if (Build.VERSION.SDK_INT >= 31)
             wall.setRenderEffect(blur ? RenderEffect.createBlurEffect(px(18), px(18), Shader.TileMode.CLAMP) : null);
@@ -717,6 +759,7 @@ public class MainActivity extends Activity {
             home.animate().alpha(1f).setDuration(200).withLayer().setListener(null).start();
         }
         header.setVisibility(View.VISIBLE);
+        if (!darkOn) dim.animate().alpha(0f).setDuration(200).start();
         if (Build.VERSION.SDK_INT >= 31) wall.setRenderEffect(null);
         openFolder = null;
         if (wasOpen && refocus) focusFirstFav();
@@ -835,49 +878,107 @@ public class MainActivity extends Activity {
 
     // ---------- control center ----------
 
-    void showControl() {
+    String ccSection; // Control Center page: null = the list of sections
+    static final String[][] CC_SECTIONS = { // key, title, what is inside
+            {"quick", "Quick actions", "Sleep · Inputs · Screensaver · Fire pit"},
+            {"net", "Network & sound", "Wi-Fi · Bluetooth · Sound"},
+            {"display", "Display & wallpaper", "Display · Dark mode · Wallpaper"},
+            {"home", "Home screen", "Layout · Button style · Icons · Clock"},
+            {"game", "Game Mode", "Stream your PC · Game Mode app"},
+            {"system", "System", "Settings · Setup · Updates"}};
+    static final int[] CC_ICONS = {R.drawable.ic_power, R.drawable.ic_wifi, R.drawable.ic_brightness, R.drawable.ic_home, R.drawable.ic_game, R.drawable.ic_settings};
+
+    void showControl() { showControl(null); }
+
+    /** Control Center: the list of sections (null), or one section's settings with a Back tile. */
+    void showControl(String section) {
+        String from = ccSection;
+        ccSection = section;
         ccGrid.removeAllViews();
-        String net = netName();
-        String bt = "Unavailable";
-        try {
-            BluetoothAdapter ad = ((BluetoothManager) getSystemService(BLUETOOTH_SERVICE)).getAdapter();
-            if (ad != null) bt = ad.isEnabled() ? "On" : "Off";
-        } catch (Exception ignored) { }
-        ccTile(R.drawable.ic_power, "Sleep", "Turn the TV off", v -> sleep());
-        ccTile(R.drawable.ic_wifi, "Wi-Fi", net, v -> start(new Intent(Settings.ACTION_WIFI_SETTINGS)));
-        ccTile(R.drawable.ic_bt, "Bluetooth", bt, v -> start(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS)));
-        ccTile(R.drawable.ic_input, "Inputs", "HDMI sources", v -> showInputs());
-        ccTile(R.drawable.ic_moon, "Dark mode", darkLabel(), v -> {
-            String next = darkMode().equals("auto") ? "on" : darkMode().equals("on") ? "off" : "auto";
-            prefs.edit().putString("dark", next).apply();
-            applyDark();
-            ((TextView) ((ViewGroup) ((ViewGroup) v).getChildAt(1)).getChildAt(1)).setText(darkLabel());
-        });
-        ccTile(R.drawable.ic_fire, "Fire pit", "Cozy standby", v -> fireplace());
-        ccTile(R.drawable.ic_brightness, "Display", "Backlight, color, contrast", v -> showDisplay());
-        ccTile(R.drawable.ic_tv, "Screensaver", "Start now", v -> screensaver());
-        ccTile(R.drawable.ic_game, "Game Mode", "Stream your PC", v -> startGame());
-        ccTile(R.drawable.ic_game, "Game Mode app", gameLabel(), v -> gameMenu());
-        ccTile(R.drawable.ic_tv, "Setup", "Run the setup again", v -> start(new Intent(this, SetupActivity.class)));
-        ccTile(R.drawable.ic_image, "Wallpaper", "Change", v -> showWallpapers());
-        ccTile(R.drawable.ic_home, "Home layout", layoutName(layout), v -> pickLayout());
-        ccTile(R.drawable.ic_apps, "Button style", SKINS[skinIndex()][1], v -> {
-            prefs.edit().putString("skin", SKINS[(skinIndex() + 1) % SKINS.length][0]).apply();
-            toast("Button style: " + SKINS[skinIndex()][1]);
-            recreate(); // the style is a theme, so it needs a fresh inflate
-        });
-        ccTile(R.drawable.ic_apps, "Icons", iconsLabel(), v -> showIconSize());
-        ccTile(R.drawable.ic_sound, "Sound", "Audio settings", v -> start(new Intent(Settings.ACTION_SOUND_SETTINGS)));
-        ccTile(R.drawable.ic_settings, "Settings", "All settings", v -> openSettings());
-        ccTile(R.drawable.ic_home, "Updates", updateLabel(), v -> {
-            if (update != null) showUpdate(update);
-            else { toast("Checking for updates..."); checkUpdate(true); }
-        });
-        showOverlay(controlOverlay, true);
-        focusFirst(ccGrid);
+        TextView title = findViewById(R.id.ccTitle);
+        int focus = 0;
+        if (section == null) {
+            title.setText("Control Center");
+            ccGrid.setColumnCount(1);
+            for (int i = 0; i < CC_SECTIONS.length; i++) {
+                String[] s = CC_SECTIONS[i];
+                ccTile(CC_ICONS[i], s[1], s[2], v -> showControl(s[0]), 478);
+                if (s[0].equals(from)) focus = i;
+            }
+        } else {
+            String name = section;
+            for (String[] s : CC_SECTIONS) if (s[0].equals(section)) name = s[1];
+            title.setText("Control Center  ›  " + name);
+            ccGrid.setColumnCount(3);
+            ccTile(0, "‹  Back", "Control Center", v -> showControl(null), 156);
+            ccSectionTiles(section);
+            focus = 1;
+        }
+        if (controlOverlay.getVisibility() != View.VISIBLE) showOverlay(controlOverlay, true);
+        if (ccGrid.getChildCount() > 0) ccGrid.getChildAt(Math.min(focus, ccGrid.getChildCount() - 1)).requestFocus();
     }
 
-    void ccTile(int icon, String title, String sub, View.OnClickListener l) {
+    void ccSectionTiles(String section) {
+        switch (section) {
+            case "quick":
+                ccTile(R.drawable.ic_power, "Sleep", "Turn the TV off", v -> sleep());
+                ccTile(R.drawable.ic_input, "Inputs", "HDMI sources", v -> showInputs());
+                ccTile(R.drawable.ic_tv, "Screensaver", "Start now", v -> screensaver());
+                ccTile(R.drawable.ic_fire, "Fire pit", "Cozy standby", v -> fireplace());
+                break;
+            case "net":
+                String bt = "Unavailable";
+                try {
+                    BluetoothAdapter ad = ((BluetoothManager) getSystemService(BLUETOOTH_SERVICE)).getAdapter();
+                    if (ad != null) bt = ad.isEnabled() ? "On" : "Off";
+                } catch (Exception ignored) { }
+                ccTile(R.drawable.ic_wifi, "Wi-Fi", netName(), v -> start(new Intent(Settings.ACTION_WIFI_SETTINGS)));
+                ccTile(R.drawable.ic_bt, "Bluetooth", bt, v -> start(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS)));
+                ccTile(R.drawable.ic_sound, "Sound", "Audio settings", v -> start(new Intent(Settings.ACTION_SOUND_SETTINGS)));
+                break;
+            case "display":
+                ccTile(R.drawable.ic_brightness, "Display", "Backlight, color, contrast", v -> showDisplay());
+                ccTile(R.drawable.ic_moon, "Dark mode", darkLabel(), v -> {
+                    String next = darkMode().equals("auto") ? "on" : darkMode().equals("on") ? "off" : "auto";
+                    prefs.edit().putString("dark", next).apply();
+                    applyDark();
+                    ((TextView) ((ViewGroup) ((ViewGroup) v).getChildAt(1)).getChildAt(1)).setText(darkLabel());
+                });
+                ccTile(R.drawable.ic_image, "Wallpaper", "Change", v -> showWallpapers());
+                break;
+            case "home":
+                ccTile(R.drawable.ic_home, "Home layout", layoutName(layout), v -> pickLayout());
+                ccTile(R.drawable.ic_apps, "Button style", SKINS[skinIndex()][1], v -> {
+                    prefs.edit().putString("skin", SKINS[(skinIndex() + 1) % SKINS.length][0]).apply();
+                    toast("Button style: " + SKINS[skinIndex()][1]);
+                    recreate(); // the style is a theme, so it needs a fresh inflate
+                });
+                ccTile(R.drawable.ic_apps, "Icons", iconsLabel(), v -> showIconSize());
+                if (layout.equals("dock"))
+                    ccTile(R.drawable.ic_tv, "Clock widget", clockMinimal() ? "Minimal" : "Default", v -> {
+                        prefs.edit().putString("clockMode", clockMinimal() ? "default" : "minimal").apply();
+                        applyClockMode();
+                        setTileSub("Clock widget", clockMinimal() ? "Minimal" : "Default");
+                    });
+                break;
+            case "game":
+                ccTile(R.drawable.ic_game, "Game Mode", "Stream your PC", v -> startGame());
+                ccTile(R.drawable.ic_game, "Game Mode app", gameLabel(), v -> gameMenu());
+                break;
+            case "system":
+                ccTile(R.drawable.ic_settings, "Settings", "All settings", v -> openSettings());
+                ccTile(R.drawable.ic_tv, "Setup", "Run the setup again", v -> start(new Intent(this, SetupActivity.class)));
+                ccTile(R.drawable.ic_home, "Updates", updateLabel(), v -> {
+                    if (update != null) showUpdate(update);
+                    else { toast("Checking for updates..."); checkUpdate(true); }
+                });
+                break;
+        }
+    }
+
+    void ccTile(int icon, String title, String sub, View.OnClickListener l) { ccTile(icon, title, sub, l, 156); }
+
+    void ccTile(int icon, String title, String sub, View.OnClickListener l, int widthDp) {
         LinearLayout t = new LinearLayout(this);
         t.setOrientation(LinearLayout.HORIZONTAL);
         t.setGravity(Gravity.CENTER_VERTICAL);
@@ -885,7 +986,8 @@ public class MainActivity extends Activity {
         t.setBackgroundResource(R.drawable.cc_tile);
         t.setPadding(px(12), 0, px(10), 0);
         ImageView iv = new ImageView(this);
-        iv.setImageResource(icon);
+        if (icon != 0) iv.setImageResource(icon);
+        iv.setVisibility(icon != 0 ? View.VISIBLE : View.GONE); // keeps the tile's child layout the same (setTileSub reads it)
         iv.setImageTintList(getColorStateList(R.color.pill_text));
         iv.setDuplicateParentStateEnabled(true);
         t.addView(iv, new LinearLayout.LayoutParams(px(20), px(20)));
@@ -908,7 +1010,7 @@ public class MainActivity extends Activity {
         t.setOnClickListener(l);
         t.setOnFocusChangeListener((v, f) -> zoom(v, f, 1.04f));
         GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
-        lp.width = px(156);
+        lp.width = px(widthDp);
         lp.height = px(54);
         lp.setMargins(px(5), px(5), px(5), px(5));
         ccGrid.addView(t, lp);
@@ -968,7 +1070,13 @@ public class MainActivity extends Activity {
         body.setEllipsize(null);
         body.setLineSpacing(0, 1.15f);
         body.setPadding(px(24), px(8), px(24), px(8));
-        android.widget.ScrollView sv = new android.widget.ScrollView(this);
+        int maxH = getResources().getDisplayMetrics().heightPixels * 45 / 100;
+        android.widget.ScrollView sv = new android.widget.ScrollView(this) {
+            @Override protected void onMeasure(int w, int h) {
+                super.onMeasure(w, MeasureSpec.makeMeasureSpec(maxH, MeasureSpec.AT_MOST));
+            }
+        };
+        sv.setFocusable(true); // Up from the buttons lands here, and the d-pad scrolls the notes
         sv.addView(body);
         dialog().setTitle("What's new in v" + r.version + "  (you have v" + version() + ")").setView(sv)
                 .setPositiveButton("Update now", (d, w) -> installUpdate(r))
@@ -1075,7 +1183,7 @@ public class MainActivity extends Activity {
 
     boolean showNames() { return prefs.getBoolean("showNames", true); }
 
-    String iconsLabel() { return iconPct() + "%" + (showNames() ? " · names" : ""); }
+    String iconsLabel() { return (fillDock() ? "Fill dock" : iconPct() + "%") + (showNames() ? " · names" : ""); }
 
     /** Icons panel: a size slider with a live Bruce TV tile at the size the app icons will have on Home, and whether a name shows when an app is focused. Home redraws when it closes. */
     void showIconSize() {
@@ -1102,23 +1210,34 @@ public class MainActivity extends Activity {
             name.setTextSize(Math.round(10 * v / 100f));
             return v + "%  ·  " + wh[0] + " × " + wh[1];
         }, v -> prefs.edit().putInt("iconPct", v).apply());
-        android.widget.Switch names = new android.widget.Switch(this);
-        names.setText("Show app name when focused");
-        names.setTextColor(Color.WHITE);
-        names.setPadding(px(4), px(18), px(4), px(4));
-        names.setChecked(showNames());
         name.setVisibility(showNames() ? View.VISIBLE : View.GONE);
-        names.setOnCheckedChangeListener((b, on) -> {
+        box.addView(toggle("Show app name when focused", showNames(), on -> {
             prefs.edit().putBoolean("showNames", on).apply();
             name.setVisibility(on ? View.VISIBLE : View.GONE);
-        });
-        box.addView(names);
+        }));
+        box.addView(toggle("Show hints (like \"Hold OK on an app for options\")", showHints(), on -> prefs.edit().putBoolean("showHints", on).apply()));
+        if (layout.equals("dock")) // with 3+ apps the dock's tiles resize to fill it, replacing Icon size
+            box.addView(toggle("Fill the dock (3+ apps, replaces Icon size)", fillDock(), on -> prefs.edit().putBoolean("fillDock", on).apply()));
+        if (layout.equals("dock"))
+            box.addView(toggle("Show the Recent button on the dock", showRecentButton(), on -> prefs.edit().putBoolean("showRecentBtn", on).apply()));
         dialog().setTitle("Icons").setView(box).setPositiveButton("Done", null).setOnDismissListener(d -> {
             setTileSub("Icons", iconsLabel());
             renderFavs(-1);
             renderGrid(openFolder);
             liftDockLabel();
+            applyRecentButton();
+            applyHints();
         }).show();
+    }
+
+    android.widget.Switch toggle(String text, boolean on, java.util.function.Consumer<Boolean> l) {
+        android.widget.Switch sw = new android.widget.Switch(this);
+        sw.setText(text);
+        sw.setTextColor(Color.WHITE);
+        sw.setPadding(px(4), px(18), px(4), px(4));
+        sw.setChecked(on);
+        sw.setOnCheckedChangeListener((b, v) -> l.accept(v));
+        return sw;
     }
 
     void sleep() {
@@ -1143,19 +1262,22 @@ public class MainActivity extends Activity {
         return m.equals("on") ? "On" : m.equals("off") ? "Off" : "Auto · 7pm to 7am";
     }
 
-    void applyDark() {
+    boolean dark() {
         int h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         String m = darkMode();
-        boolean dark = m.equals("on") || (m.equals("auto") && (h >= 19 || h < 7));
-        dim.setVisibility(dark ? View.VISIBLE : View.GONE);
-        // the dim layer sits under the home content, so dim the app rows and buttons themselves
-        float a = dark ? 0.72f : 1f;
-        for (int id : new int[]{R.id.favRow, R.id.continueRow, R.id.actApps, R.id.actInputs, R.id.actGame, R.id.actWall,
-                R.id.actSettings, R.id.actRecent, R.id.actSleep, R.id.contTile}) {
-            View v = findViewById(id);
-            if (v != null) v.setAlpha(a);
-        }
+        return m.equals("on") || (m.equals("auto") && (h >= 19 || h < 7));
     }
+
+    /** Dark mode: a dark layer over the wallpaper, grey glass buttons and shaded app icons (a theme, so the screen is recreated when it flips). */
+    void applyDark() {
+        if (dark() != darkOn) { recreate(); return; }
+        dim.setVisibility(View.VISIBLE);
+        dim.setAlpha(darkOn || home.getVisibility() != View.VISIBLE ? 1f : 0f);
+        View scrim = findViewById(R.id.scrim); // light mode: the wallpaper is shown as it is
+        if (scrim != null) { scrim.setVisibility(darkOn ? View.VISIBLE : View.GONE); scrim.setAlpha(DARK_SCRIM); }
+    }
+
+    boolean glassy() { return skinIndex() != 0 || darkOn; }
 
     // ---------- continue watching ----------
 
@@ -1339,15 +1461,110 @@ public class MainActivity extends Activity {
 
     void applyStoredWallpaper() {
         String mode = prefs.getString("wall", "nature");
-        if (mode.startsWith("grad:")) { wall.setImageDrawable(gradient(Integer.parseInt(mode.substring(5)))); return; }
-        wall.setImageDrawable(gradient(0));
-        if (!wallFile().exists()) return;
+        if (mode.startsWith("grad:")) { showWall(gradient(Integer.parseInt(mode.substring(5)))); return; }
+        if (!wallFile().exists()) { showWall(gradient(0)); return; }
+        wall.setImageDrawable(gradient(0)); // until the photo decodes (not blurred into the glass)
         bg.execute(() -> {
             try {
                 Bitmap bm = decode(Files.readAllBytes(wallFile().toPath()), 1920);
-                ui.post(() -> wall.setImageBitmap(bm));
+                ui.post(() -> showWall(new BitmapDrawable(getResources(), bm)));
             } catch (Exception ignored) { }
         });
+    }
+
+    void showWall(Drawable d) {
+        wall.setImageDrawable(d);
+        frostWall();
+    }
+
+    /** Glass skins: put the blurred wallpaper under a panel's own glass fill. */
+    void frost(int id, int radiusDp) {
+        View v = findViewById(id);
+        if (v != null) frost(v, radiusDp);
+    }
+
+    void frost(View v, int radiusDp) {
+        Drawable fill = v.getBackground();
+        Frost f = new Frost(v, px(radiusDp));
+        v.setBackground(null); // detach first, or the layer's callback on it is cleared again
+        v.setBackground(new LayerDrawable(fill == null ? new Drawable[]{f} : new Drawable[]{f, fill}));
+        frosted.add(v);
+    }
+
+    /** Buttons carry the tag "glass:<corner radius dp>" from their style. */
+    void frostButtons(View v) {
+        Object t = v.getTag();
+        if (t instanceof String && ((String) t).startsWith("glass:")) frost(v, Integer.parseInt(((String) t).substring(6)));
+        if (v instanceof ViewGroup) for (int i = 0; i < ((ViewGroup) v).getChildCount(); i++) frostButtons(((ViewGroup) v).getChildAt(i));
+    }
+
+    /** Light mode: nothing shades the wallpaper, so a soft dark glow behind the Dock's clock block fades in as far as the wallpaper under it is bright. */
+    void adaptText(Bitmap b) {
+        View glow = findViewById(R.id.clockGlow);
+        if (glow != null) glow.setAlpha(darkOn || clockMinimal() ? 0f : Math.max(0f, Math.min(1f, (luma(b, .05f, .05f, .34f, .42f) - .35f) / .4f)));
+    }
+
+    boolean clockMinimal() { return layout.equals("dock") && prefs.getString("clockMode", "default").equals("minimal"); }
+
+    /** Dock layout: "Minimal" swaps the big clock block for a small clock and the weather beside the top-right buttons. */
+    void applyClockMode() {
+        View block = findViewById(R.id.clockBlock), mini = findViewById(R.id.miniClock);
+        if (block == null || mini == null) return;
+        block.setVisibility(clockMinimal() ? View.GONE : View.VISIBLE);
+        mini.setVisibility(clockMinimal() ? View.VISIBLE : View.GONE);
+        if (Frost.blur != null) adaptText(Frost.blur);
+    }
+
+    /** "⛅ Partly cloudy  12°C  (H 13° / L 9°)" -> "Partly cloudy 12°C" */
+    static String shortWeather(String s) {
+        return s.replaceAll("\\s*\\(.*\\)\\s*$", "").replaceFirst("^[^\\p{L}]+", "").replaceAll("\\s{2,}", " ");
+    }
+
+    /** Average brightness (0..1) of a region of the thumbnail, given as fractions of its size. */
+    static float luma(Bitmap b, float x0, float y0, float x1, float y1) {
+        long sum = 0;
+        int n = 0;
+        for (int y = (int) (y0 * b.getHeight()); y < y1 * b.getHeight(); y++)
+            for (int x = (int) (x0 * b.getWidth()); x < x1 * b.getWidth(); x++, n++) {
+                int p = b.getPixel(x, y);
+                sum += Color.red(p) * 299 + Color.green(p) * 587 + Color.blue(p) * 114;
+            }
+        return n == 0 ? 0f : sum / (n * 255000f);
+    }
+
+    /** Glass skins: a tiny screen-shaped copy of the wallpaper (Frosted is the tinier, so the blurrier). Frost stretches it back up, which is the blur. */
+    void frostWall() {
+        Drawable d = wall.getDrawable();
+        if (d == null) return;
+        android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+        int w = skinIndex() == 2 ? 48 : 96, h = Math.max(1, w * dm.heightPixels / dm.widthPixels);
+        Bitmap b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(b);
+        if (d instanceof BitmapDrawable) {
+            Bitmap s = ((BitmapDrawable) d).getBitmap();
+            while (s.getWidth() > 4 * w) s = Bitmap.createScaledBitmap(s, s.getWidth() / 2, s.getHeight() / 2, true); // halve, so nothing is skipped over
+            float k = Math.max((float) w / s.getWidth(), (float) h / s.getHeight()); // centre-crop, like the wallpaper view
+            c.save();
+            c.translate((w - s.getWidth() * k) / 2, (h - s.getHeight() * k) / 2);
+            c.scale(k, k);
+            c.drawBitmap(s, 0, 0, new Paint(Paint.FILTER_BITMAP_FLAG));
+            c.restore();
+        } else {
+            Rect old = d.copyBounds();
+            d.setBounds(0, 0, w, h);
+            d.draw(c);
+            d.setBounds(old);
+        }
+        if (darkOn) { // the glass sits under the same shading as the wallpaper: the top and bottom scrim and the dim layer
+            Drawable scrim = getDrawable(R.drawable.scrim);
+            scrim.setBounds(0, 0, w, h);
+            scrim.setAlpha(Math.round(255 * DARK_SCRIM));
+            scrim.draw(c);
+            c.drawColor(DIM);
+        }
+        Frost.blur = b;
+        adaptText(b);
+        for (View v : frosted) v.invalidate();
     }
 
     GradientDrawable gradient(int i) {
@@ -1440,7 +1657,7 @@ public class MainActivity extends Activity {
         if (bm == null) throw new Exception("bad image");
         try (FileOutputStream out = new FileOutputStream(wallFile())) { out.write(data); }
         prefs.edit().putString("wall", mode).apply();
-        ui.post(() -> wall.setImageBitmap(bm));
+        ui.post(() -> showWall(new BitmapDrawable(getResources(), bm)));
     }
 
     void showWallpapers() {
@@ -1462,7 +1679,7 @@ public class MainActivity extends Activity {
             View t = wallTile(null, gradient(i), -1);
             t.setOnClickListener(v -> {
                 prefs.edit().putString("wall", "grad:" + gi).apply();
-                wall.setImageDrawable(gradient(gi));
+                showWall(gradient(gi));
             });
         }
         for (File f : localImages()) {
@@ -1569,7 +1786,7 @@ public class MainActivity extends Activity {
                 int code = c.getInt("weather_code");
                 boolean isDay = c.optInt("is_day", 1) == 1;
                 prefs.edit().putString("wxText", s).putInt("wxCode", code).putBoolean("wxDay", isDay).apply();
-                ui.post(() -> { weatherText = s; wxCode = code; wxDay = isDay; setText(weather, s); applyWx(); updateHero(); });
+                ui.post(() -> { weatherText = s; wxCode = code; wxDay = isDay; setText(weather, s); setText((TextView) findViewById(R.id.miniWeather), shortWeather(s)); applyWx(); updateHero(); });
             } catch (Exception e) {
                 android.util.Log.w("Bearacle", "weather", e);
                 weatherAt = 0; // retry on next resume
@@ -1602,7 +1819,42 @@ public class MainActivity extends Activity {
     }
 
     /** Width, height and gap (dp) of the app tiles on Home. */
-    int[] favTile() { return favTile(iconScale()); }
+    int[] favTile() {
+        int[] f = fillTile();
+        return f != null ? f : favTile(iconScale());
+    }
+
+    boolean showHints() { return prefs.getBoolean("showHints", true); }
+
+    /** Icons > "Show hints": the tips on Home, Recent and Wallpaper. */
+    void applyHints() {
+        for (int id : new int[]{R.id.homeHint, R.id.recentHint, R.id.wallHint}) {
+            View v = findViewById(id);
+            if (v != null) v.setVisibility(showHints() ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    boolean showRecentButton() { return prefs.getBoolean("showRecentBtn", true); }
+
+    /** Dock layout: the Recent tool can be hidden (Icons). */
+    void applyRecentButton() {
+        View r = findViewById(R.id.actRecent);
+        if (r != null && layout.equals("dock")) r.setVisibility(showRecentButton() ? View.VISIBLE : View.GONE);
+    }
+
+    boolean fillDock() { return layout.equals("dock") && prefs.getBoolean("fillDock", false); }
+
+    /** Dock with "Fill the dock" on and 3+ apps: the tiles share the whole app area (width, height 16:9 up to 110dp). Null otherwise. */
+    int[] fillTile() {
+        int n = 0;
+        for (String p : favs()) if (apps.containsKey(p)) n++;
+        if (n < 3 || !fillDock()) return null;
+        android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+        int gap = 10;
+        float room = dm.widthPixels / dm.density - 145 - 54 * (showRecentButton() ? 4 : 3); // screen minus dock margins and padding (96 + 8 + 20), row padding (12), divider (9) and the tool buttons (54 each)
+        int w = Math.max(64, (int) (room / n) - gap);
+        return new int[]{w, Math.min(Math.round(w * 9 / 16f), 110), gap};
+    }
 
     int[] favTile(float scale) {
         int[] t;
@@ -1762,6 +2014,11 @@ public class MainActivity extends Activity {
             return true;
         }
         View f = getCurrentFocus();
+        if (layout.equals("dock") && e.getAction() == KeyEvent.ACTION_DOWN && code == KeyEvent.KEYCODE_DPAD_UP && f != null
+                && f.getParent() == grid && appsOverlay.getVisibility() == View.VISIBLE) {
+            View up = f.focusSearch(View.FOCUS_UP);
+            if (up == null || up.getParent() != grid) { closeOverlays(); return true; } // top row: back to Home
+        }
         int toNav = layout.equals("bottom") ? KeyEvent.KEYCODE_DPAD_DOWN : KeyEvent.KEYCODE_DPAD_UP;
         if (e.getAction() == KeyEvent.ACTION_DOWN && e.getKeyCode() == toNav && f != null) {
             View mine = appsOverlay.getVisibility() == View.VISIBLE ? findViewById(R.id.navApps)
@@ -1776,7 +2033,7 @@ public class MainActivity extends Activity {
     }
 
     void zoom(View v, boolean focused, float s) {
-        v.animate().scaleX(focused ? s : 1f).scaleY(focused ? s : 1f).setDuration(140).start();
+        v.animate().scaleX(focused ? s : 1f).scaleY(focused ? s : 1f).translationZ(focused ? px(4) : 0f).setDuration(140).start(); // Z puts it over its neighbours
     }
 
     AlertDialog.Builder dialog() { return new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert); }
