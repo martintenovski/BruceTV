@@ -116,13 +116,13 @@ public class MainActivity extends Activity {
     String moving;   // package being repositioned on the Home row (left/right moves it, OK drops it)
     long wallTry;
     static final String HOME_HINT = "Hold OK on an app for options";
-    // Home layouts, picked in Control Center > Home layout (pref "layout"). Classic is the default.
+    // Home layouts, picked in Control Center > Home layout (pref "layout"). Dock is the default.
     static final String[][] LAYOUTS = {
             {"classic", "Classic", "Greeting, apps row and buttons"},
             {"dock", "Dock", "Big clock, one floating dock"},
             {"bento", "Bento", "Big tiles, Game Mode as the hero"},
             {"bottom", "Bottom bar", "Labelled icon bar along the bottom"}};
-    String layout = "classic";
+    String layout = "dock";
     // Button/nav look (pref "skin", theme overlays in themes.xml) and app icon size (pref "iconPct", 75..150).
     static final String[][] SKINS = {
             {"default", "Default"}, {"glass", "Glassy"}, {"frosted", "Frosted glass"}};
@@ -168,7 +168,7 @@ public class MainActivity extends Activity {
             if (prefs.getAll().isEmpty()) startActivity(new Intent(this, SetupActivity.class)); // a fresh install: set it up
             else prefs.edit().putBoolean("setup_done", true).apply(); // already in use
         }
-        layout = prefs.getString("layout", "classic");
+        layout = prefs.getString("layout", "dock");
         if (layoutName(layout) == null) layout = "classic"; // a layout that was removed
         int skin = skinIndex();
         if (SKIN_STYLE[skin] != 0) getTheme().applyStyle(SKIN_STYLE[skin], true); // must be on the theme before the layout inflates
@@ -313,7 +313,7 @@ public class MainActivity extends Activity {
         loadContinue();
         checkDaily();
         autoCheckUpdate();
-        String want = prefs.getString("layout", "classic"); // Setup may have changed it
+        String want = prefs.getString("layout", "dock"); // Setup may have changed it
         if (layoutName(want) == null) want = "classic";
         if (!want.equals(layout)) recreate();
     }
@@ -1900,7 +1900,7 @@ public class MainActivity extends Activity {
         if (bar != null) bar.setPadding(px(8), px(8), px(toolCount() > 0 ? 20 : 8), px(8));
     }
 
-    boolean fillDock() { return layout.equals("dock") && prefs.getBoolean("fillDock", false); }
+    boolean fillDock() { return layout.equals("dock") && prefs.getBoolean("fillDock", true); }
 
     /** Dock with "Fill the dock" on and 3+ apps: the tiles share the whole app area (width, height 16:9 up to 110dp). Null otherwise. */
     int[] fillTile() {

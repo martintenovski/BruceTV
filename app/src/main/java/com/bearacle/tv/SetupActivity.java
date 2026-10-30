@@ -135,7 +135,7 @@ public class SetupActivity extends Activity {
         cards.setClipChildren(false);
         cards.setClipToPadding(false);
         cards.setPadding(0, px(14), 0, px(14));
-        String cur = prefs.getString("layout", "classic");
+        String cur = prefs.getString("layout", "dock");
         View focus = null;
         for (String[] l : MainActivity.LAYOUTS) {
             LinearLayout card = new LinearLayout(this);
