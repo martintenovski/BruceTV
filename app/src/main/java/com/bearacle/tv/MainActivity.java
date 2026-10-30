@@ -376,7 +376,7 @@ public class MainActivity extends Activity {
                 App a = new App();
                 a.pkg = p;
                 a.label = ri.loadLabel(pm).toString();
-                a.art = ri.activityInfo.loadBanner(pm);
+                a.art = sharpBanner(ri, pm);
                 a.banner = a.art != null;
                 if (!a.banner) a.art = ri.loadIcon(pm);
                 if (p.equals(TIZENTUBE)) { // wears the stock YouTube tile
@@ -388,6 +388,18 @@ public class MainActivity extends Activity {
         sorted = new ArrayList<>(apps.values());
         sorted.sort((x, y) -> x.pkg.equals(PLAY_STORE) ? -1 : y.pkg.equals(PLAY_STORE) ? 1
                 : x.label.compareToIgnoreCase(y.label));
+    }
+
+    /** The app's banner from its xxhdpi bucket (if it ships one) rather than the one nearest the TV's density: scaling down stays crisp where scaling up goes soft. */
+    Drawable sharpBanner(ResolveInfo ri, PackageManager pm) {
+        try {
+            int id = ri.activityInfo.getBannerResource();
+            if (id != 0) {
+                Drawable d = pm.getResourcesForApplication(ri.activityInfo.applicationInfo).getDrawableForDensity(id, android.util.DisplayMetrics.DENSITY_XXHIGH, null);
+                if (d != null) return d;
+            }
+        } catch (Exception e) { /* fall back to the stock lookup */ }
+        return ri.activityInfo.loadBanner(pm);
     }
 
     List<String> favs() {
