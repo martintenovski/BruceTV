@@ -20,6 +20,10 @@
         <item name="toolInk">#000000</item>
         <item name="plainRim">#00FFFFFF</item>
         <item name="plainInk">#000000</item>
+        <item name="chipFill1">#CCFFFFFF</item>
+        <item name="chipFill2">#CCFFFFFF</item>
+        <item name="chipRim">#00FFFFFF</item>
+        <item name="chipSheen">#00FFFFFF</item>
         <item name="panelSheen">#00FFFFFF</item>
         <item name="panelFill1">#D914171E</item>
         <item name="panelFill2">#D914171E</item>
@@ -42,6 +46,10 @@
         <item name="plainFill2">#08FFFFFF</item>
         <item name="plainRim">#66FFFFFF</item>
         <item name="plainInk">#FFFFFF</item>
+        <item name="chipFill1">?attr/barFill1</item>
+        <item name="chipFill2">?attr/barFill2</item>
+        <item name="chipRim">?attr/barStroke</item>
+        <item name="chipSheen">?attr/sheen</item>
         <item name="toolFill">#26000000</item>
         <item name="toolRim">#33FFFFFF</item>
         <item name="toolInk">#FFFFFF</item>
@@ -67,6 +75,10 @@
         <item name="plainFill2">#24B7C3D6</item>
         <item name="plainRim">#66FFFFFF</item>
         <item name="plainInk">#FFFFFF</item>
+        <item name="chipFill1">?attr/barFill1</item>
+        <item name="chipFill2">?attr/barFill2</item>
+        <item name="chipRim">?attr/barStroke</item>
+        <item name="chipSheen">?attr/sheen</item>
         <item name="toolFill">#2E000000</item>
         <item name="toolRim">#4DFFFFFF</item>
         <item name="toolInk">#FFFFFF</item>
@@ -94,6 +106,10 @@
         <item name="plainFill2">#802A2F38</item>
         <item name="plainRim">#40FFFFFF</item>
         <item name="plainInk">#FFFFFF</item>
+        <item name="chipFill1">?attr/barFill1</item>
+        <item name="chipFill2">?attr/barFill2</item>
+        <item name="chipRim">?attr/barStroke</item>
+        <item name="chipSheen">?attr/sheen</item>
         <item name="toolFill">#33000000</item>
         <item name="toolRim">#26FFFFFF</item>
         <item name="toolInk">#FFFFFF</item>

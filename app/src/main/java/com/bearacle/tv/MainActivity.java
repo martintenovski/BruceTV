@@ -95,9 +95,7 @@ public class MainActivity extends Activity {
             PLAY_STORE, "org.smarttube.stable", "com.nuvio.tv", "com.limelight", "com.netflix.ninja",
             "com.disney.disneyplus", "com.amazon.amazonvideo.livingroom", "com.stremio.one",
             "com.wbd.stream", "com.apple.atve.androidtv.appletv"};
-    static final String DEFAULT_FOLDERS = "{\"Utilities\":[\"cm.aptoidetv.pt\",\"com.downloader.tv.installer.xapk\","
-            + "\"com.yablio.sendfilestotv\",\"com.tcl.browser\",\"com.mediatek.miracast\",\"com.mediatek.wwtv.mediaplayer\","
-            + "\"com.expressluck.tvhelpmanual\"]}";
+    static final String DEFAULT_FOLDERS = "{}"; // no folders until the user makes some
     static final int[][] GRADIENTS = {
             {0xFF000428, 0xFF004E92}, {0xFF0F2027, 0xFF2C5364}, {0xFF141E30, 0xFF243B55},
             {0xFF42275A, 0xFF734B6D}, {0xFF3A1C71, 0xFFD76D77, 0xFFFFAF7B}, {0xFF232526, 0xFF414345}};
@@ -769,7 +767,14 @@ public class MainActivity extends Activity {
 
     void focusFirstFav() {
         if (favRow.getChildCount() > 0) favRow.getChildAt(0).requestFocus();
-        else { View a = findViewById(R.id.actApps); (a != null ? a : home).requestFocus(); }
+        else {
+            View first = home; // the first dock tool still shown
+            for (int id : new int[]{R.id.actApps, R.id.actInputs, R.id.actGame, R.id.actRecent}) {
+                View a = findViewById(id);
+                if (a != null && a.getVisibility() == View.VISIBLE) { first = a; break; }
+            }
+            first.requestFocus();
+        }
     }
 
     void showApps() {
@@ -880,7 +885,7 @@ public class MainActivity extends Activity {
 
     String ccSection; // Control Center page: null = the list of sections
     static final String[][] CC_SECTIONS = { // key, title, what is inside
-            {"quick", "Quick actions", "Sleep · Inputs · Screensaver · Fire pit"},
+            {"quick", "Quick actions", "Sleep · Inputs · All apps · Recent apps · Screensaver · Fire pit"},
             {"net", "Network & sound", "Wi-Fi · Bluetooth · Sound"},
             {"display", "Display & wallpaper", "Display · Dark mode · Wallpaper"},
             {"home", "Home screen", "Layout · Button style · Icons · Clock"},
@@ -923,6 +928,8 @@ public class MainActivity extends Activity {
             case "quick":
                 ccTile(R.drawable.ic_power, "Sleep", "Turn the TV off", v -> sleep());
                 ccTile(R.drawable.ic_input, "Inputs", "HDMI sources", v -> showInputs());
+                ccTile(R.drawable.ic_apps, "All apps", "Every app", v -> showApps());
+                ccTile(R.drawable.ic_recent, "Recent apps", "Switch or close", v -> showRecent());
                 ccTile(R.drawable.ic_tv, "Screensaver", "Start now", v -> screensaver());
                 ccTile(R.drawable.ic_fire, "Fire pit", "Cozy standby", v -> fireplace());
                 break;
@@ -964,6 +971,7 @@ public class MainActivity extends Activity {
             case "game":
                 ccTile(R.drawable.ic_game, "Game Mode", "Stream your PC", v -> startGame());
                 ccTile(R.drawable.ic_game, "Game Mode app", gameLabel(), v -> gameMenu());
+                ccTile(R.drawable.ic_game, "Game Mode icon", gameIconLabel(), v -> toggleGameIcon());
                 break;
             case "system":
                 ccTile(R.drawable.ic_settings, "Settings", "All settings", v -> openSettings());
@@ -1113,10 +1121,10 @@ public class MainActivity extends Activity {
 
     // The TV's own Picture menu (backlight, contrast...) is stored behind a signature permission and is applied to
     // video, not to the app layer, so the launcher can't follow it. Color and contrast are the launcher's own picture controls.
-    // Defaults sit a notch above neutral: the glass UI looks flat otherwise.
-    int colorPct() { return prefs.getInt("pColorP", 115); }
+    // Both default to neutral (100%): a fresh install must not tint the picture.
+    int colorPct() { return prefs.getInt("pColorP", 100); }
 
-    int contrastPct() { return prefs.getInt("pContrastP", 110); }
+    int contrastPct() { return prefs.getInt("pContrastP", 100); }
 
     /** Colour and contrast over the whole launcher window (Android 12+). */
     void applyPicture() {
@@ -1218,9 +1226,15 @@ public class MainActivity extends Activity {
         box.addView(toggle("Show hints (like \"Hold OK on an app for options\")", showHints(), on -> prefs.edit().putBoolean("showHints", on).apply()));
         if (layout.equals("dock")) // with 3+ apps the dock's tiles resize to fill it, replacing Icon size
             box.addView(toggle("Fill the dock (3+ apps, replaces Icon size)", fillDock(), on -> prefs.edit().putBoolean("fillDock", on).apply()));
-        if (layout.equals("dock"))
+        if (layout.equals("dock")) { // with all four off, the dock is only the apps
+            box.addView(toggle("Show the All apps button on the dock", showAppsButton(), on -> prefs.edit().putBoolean("showAppsBtn", on).apply()));
+            box.addView(toggle("Show the Inputs button on the dock", showInputsButton(), on -> prefs.edit().putBoolean("showInputsBtn", on).apply()));
+            box.addView(toggle("Show the Game Mode button on the dock", showGameButton(), on -> prefs.edit().putBoolean("showGameBtn", on).apply()));
             box.addView(toggle("Show the Recent button on the dock", showRecentButton(), on -> prefs.edit().putBoolean("showRecentBtn", on).apply()));
-        dialog().setTitle("Icons").setView(box).setPositiveButton("Done", null).setOnDismissListener(d -> {
+        }
+        android.widget.ScrollView sv = new android.widget.ScrollView(this); // the options outgrow the dialog; the d-pad scrolls to the focused one
+        sv.addView(box);
+        dialog().setTitle("Icons").setView(sv).setPositiveButton("Done", null).setOnDismissListener(d -> {
             setTileSub("Icons", iconsLabel());
             renderFavs(-1);
             renderGrid(openFolder);
@@ -1444,6 +1458,18 @@ public class MainActivity extends Activity {
     String gameLabel() {
         int i = Arrays.asList(GAME_VALUES).indexOf(prefs.getString("game_app", "Game Mode"));
         return GAME_LABELS[Math.max(0, i)];
+    }
+
+    String gameIconLabel() { return favs().contains(GAME) ? "Remove from Home" : "Install on Home"; }
+
+    /** The Game Mode icon (the PS5-logo app that opens Game Mode) is an app like any other: pin it to Home or take it off. */
+    void toggleGameIcon() {
+        List<String> f = favs();
+        if (f.remove(GAME)) toast("Game Mode icon removed from Home");
+        else { f.add(GAME); toast("Game Mode icon installed on Home"); }
+        saveFavs(f);
+        renderFavs(-1);
+        setTileSub("Game Mode icon", gameIconLabel());
     }
 
     /** What the Game Mode button streams: Bruce's own menu by default, or a 3rd-party launcher on the PC (Playnite). */
@@ -1836,10 +1862,30 @@ public class MainActivity extends Activity {
 
     boolean showRecentButton() { return prefs.getBoolean("showRecentBtn", true); }
 
-    /** Dock layout: the Recent tool can be hidden (Icons). */
+    boolean showInputsButton() { return prefs.getBoolean("showInputsBtn", true); }
+
+    boolean showAppsButton() { return prefs.getBoolean("showAppsBtn", true); }
+
+    boolean showGameButton() { return prefs.getBoolean("showGameBtn", true); }
+
+    /** How many of the dock's tool buttons are shown. */
+    int toolCount() {
+        return (showAppsButton() ? 1 : 0) + (showInputsButton() ? 1 : 0) + (showGameButton() ? 1 : 0) + (showRecentButton() ? 1 : 0);
+    }
+
+    /** Dock layout: each tool can be hidden (Icons). With none left, the divider goes too and the dock is just the apps. */
     void applyRecentButton() {
-        View r = findViewById(R.id.actRecent);
-        if (r != null && layout.equals("dock")) r.setVisibility(showRecentButton() ? View.VISIBLE : View.GONE);
+        if (!layout.equals("dock")) return;
+        int[] ids = {R.id.actApps, R.id.actInputs, R.id.actGame, R.id.actRecent};
+        boolean[] on = {showAppsButton(), showInputsButton(), showGameButton(), showRecentButton()};
+        for (int i = 0; i < ids.length; i++) {
+            View v = findViewById(ids[i]);
+            if (v != null) v.setVisibility(on[i] ? View.VISIBLE : View.GONE);
+        }
+        View div = findViewById(R.id.dockDivider);
+        if (div != null) div.setVisibility(toolCount() > 0 ? View.VISIBLE : View.GONE);
+        View bar = findViewById(R.id.dockBar);
+        if (bar != null) bar.setPadding(px(8), px(8), px(toolCount() > 0 ? 20 : 8), px(8));
     }
 
     boolean fillDock() { return layout.equals("dock") && prefs.getBoolean("fillDock", false); }
@@ -1851,7 +1897,9 @@ public class MainActivity extends Activity {
         if (n < 3 || !fillDock()) return null;
         android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
         int gap = 10;
-        float room = dm.widthPixels / dm.density - 145 - 54 * (showRecentButton() ? 4 : 3); // screen minus dock margins and padding (96 + 8 + 20), row padding (12), divider (9) and the tool buttons (54 each)
+        int tools = toolCount();
+        // screen minus dock margins and padding (96 + 8 + 20), row padding (12), divider (9) and the tool buttons (54 each); with no tools there is no divider and 12 less padding
+        float room = dm.widthPixels / dm.density - (tools > 0 ? 145 + 54 * tools : 124);
         int w = Math.max(64, (int) (room / n) - gap);
         return new int[]{w, Math.min(Math.round(w * 9 / 16f), 110), gap};
     }

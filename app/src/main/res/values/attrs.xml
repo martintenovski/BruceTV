@@ -16,6 +16,10 @@
     <attr name="plainFill2" format="color" />
     <attr name="plainRim" format="color" />
     <attr name="plainInk" format="color" />
+    <attr name="chipFill1" format="color" />
+    <attr name="chipFill2" format="color" />
+    <attr name="chipRim" format="color" />
+    <attr name="chipSheen" format="color" />
     <attr name="toolFill" format="color" />
     <attr name="toolRim" format="color" />
     <attr name="toolInk" format="color" />

@@ -232,6 +232,7 @@
             </HorizontalScrollView>
 
             <View
+                android:id="@+id/dockDivider"
                 android:layout_width="1dp"
                 android:layout_height="36dp"
                 android:layout_marginStart="4dp"
