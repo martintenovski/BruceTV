@@ -6,4 +6,4 @@
     android:canRetrieveWindowContent="true"
     android:description="@string/key_service_desc"
     android:notificationTimeout="0"
-    android:packageNames="com.google.android.apps.tv.launcherx,com.limelight,com.bearacle.tv" />
+    android:packageNames="com.google.android.apps.tv.launcherx,com.google.android.tvlauncher,com.limelight,com.bearacle.tv" />

@@ -157,7 +157,9 @@ public class KeyService extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent e) {
         if (e.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED || e.getClassName() == null) return;
         String cls = e.getClassName().toString();
-        boolean googleHome = cls.startsWith("com.google.android.apps.tv.launcherx.home.") && cls.endsWith("HomeActivity");
+        // Google TV's launcher, or the classic Android TV one that operator boxes (ARRIS...) still ship
+        boolean googleHome = (cls.startsWith("com.google.android.apps.tv.launcherx.home.") && cls.endsWith("HomeActivity"))
+                || cls.equals("com.google.android.tvlauncher.MainActivity");
         if (googleHome) {
             showShield(); // hide Google TV for the whole time Bruce TV takes to come back, not just until we ask for it
             startActivity(new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
