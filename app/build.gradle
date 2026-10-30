@@ -7,8 +7,8 @@ android {
         applicationId 'com.bearacle.tv'
         minSdk 28
         targetSdk 33
-        versionCode 14
-        versionName '3.2'
+        versionCode 15
+        versionName '3.3'
     }
     buildTypes {
         release {
