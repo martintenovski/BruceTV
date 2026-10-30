@@ -32,7 +32,7 @@ public class KeyService extends AccessibilityService {
 
     @Override protected void onServiceConnected() { instance = this; filterKeys(false); }
 
-    @Override public boolean onUnbind(Intent i) { hideCover(); hideShield(); instance = null; return super.onUnbind(i); }
+    @Override public boolean onUnbind(Intent i) { hideCover(); instance = null; return super.onUnbind(i); }
 
     @Override
     protected boolean onKeyEvent(KeyEvent e) {
@@ -161,7 +161,6 @@ public class KeyService extends AccessibilityService {
         boolean googleHome = (cls.startsWith("com.google.android.apps.tv.launcherx.home.") && cls.endsWith("HomeActivity"))
                 || cls.equals("com.google.android.tvlauncher.MainActivity");
         if (googleHome) {
-            showShield(); // hide Google TV for the whole time Bruce TV takes to come back, not just until we ask for it
             startActivity(new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         } else if (cls.startsWith("com.limelight.")) {
             moonlightCls = cls;
@@ -176,47 +175,10 @@ public class KeyService extends AccessibilityService {
             }
         } else if (cls.equals(MainActivity.class.getName())) {
             sawGame = false;
-            hideShield();
         }
     }
 
     @Override public void onInterrupt() { }
-
-    // ---------- Home shield ----------
-
-    View shield;
-    final Runnable dropShield = this::hideShield;
-
-    /** Opaque black over Google TV's home from the moment it appears until Bruce TV is on screen (or 4 s pass). */
-    void showShield() {
-        ui.removeCallbacks(dropShield);
-        ui.postDelayed(dropShield, 4000);
-        if (shield != null) return;
-        try {
-            View v = new View(this);
-            v.setBackgroundColor(Color.BLACK);
-            WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
-                    WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                            | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                    PixelFormat.OPAQUE);
-            ((WindowManager) getSystemService(WINDOW_SERVICE)).addView(v, lp);
-            shield = v;
-        } catch (Exception e) {
-            shield = null;
-        }
-    }
-
-    void hideShield() {
-        ui.removeCallbacks(dropShield);
-        View v = shield;
-        if (v == null) return;
-        shield = null;
-        v.animate().alpha(0f).setDuration(200).withEndAction(() -> {
-            try { ((WindowManager) getSystemService(WINDOW_SERVICE)).removeView(v); } catch (Exception ignored) { }
-        }).start();
-    }
 
     // ---------- Game Mode loading cover ----------
 
